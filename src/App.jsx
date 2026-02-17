@@ -15,6 +15,9 @@ import UserLayout from './pages/user/UserLayout';
 import Home from './pages/user/Home';
 import Shop from './pages/user/Shop';
 import Cart from './pages/user/Cart';
+import Checkout from './pages/user/Checkout';
+import OrderSuccess from './pages/user/OrderSuccess';
+import MyOrders from './pages/user/MyOrders';
 import Login from './pages/user/Login';
 
 // Admin Pages
@@ -71,9 +74,10 @@ const AppContent = () => {
           <Route path="cart" element={<Cart />} />
           <Route path="about" element={<div className="coming-soon"><h1>About Us</h1><p>Coming Soon</p></div>} />
           <Route path="contact" element={<div className="coming-soon"><h1>Contact Us</h1><p>Coming Soon</p></div>} />
-          <Route path="orders" element={<div className="coming-soon"><h1>My Orders</h1><p>Coming Soon</p></div>} />
+          <Route path="orders" element={<MyOrders />} />
           <Route path="wishlist" element={<div className="coming-soon"><h1>Wishlist</h1><p>Coming Soon</p></div>} />
-          <Route path="checkout" element={<div className="coming-soon"><h1>Checkout</h1><p>Coming Soon</p></div>} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="order-success" element={<OrderSuccess />} />
         </Route>
 
         {/* Auth Routes */}

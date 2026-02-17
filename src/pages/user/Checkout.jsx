@@ -1,0 +1,490 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    MapPin, Phone, User, Mail, CreditCard, Shield, Truck,
+    ChevronRight, ShoppingBag, CheckCircle, ArrowLeft, Clock, Tag
+} from 'lucide-react';
+import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { createOrder } from '../../services/database';
+import { initiateRazorpayPayment, generateOrderId } from '../../services/razorpay';
+import './Checkout.css';
+
+const Checkout = () => {
+    const { cart, cartTotal, clearCart } = useCart();
+    const { currentUser } = useAuth();
+    const navigate = useNavigate();
+
+    const [step, setStep] = useState(1); // 1: Address, 2: Payment
+    const [processing, setProcessing] = useState(false);
+    const [address, setAddress] = useState({
+        fullName: currentUser?.displayName || '',
+        phone: '',
+        email: currentUser?.email || '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: 'Tamil Nadu',
+        pincode: '',
+    });
+
+    const deliveryFee = cartTotal >= 500 ? 0 : 40;
+    const finalTotal = cartTotal + deliveryFee;
+
+    const handleAddressChange = (e) => {
+        setAddress({ ...address, [e.target.name]: e.target.value });
+    };
+
+    const validateAddress = () => {
+        const required = ['fullName', 'phone', 'addressLine1', 'city', 'pincode'];
+        for (const field of required) {
+            if (!address[field].trim()) {
+                alert(`Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+                return false;
+            }
+        }
+        if (address.phone.length < 10) {
+            alert('Please enter a valid phone number');
+            return false;
+        }
+        if (address.pincode.length < 6) {
+            alert('Please enter a valid pincode');
+            return false;
+        }
+        return true;
+    };
+
+    const handleProceedToPayment = () => {
+        if (validateAddress()) {
+            setStep(2);
+        }
+    };
+
+    // Remove undefined values recursively (Firebase rejects undefined)
+    const removeUndefined = (obj) => {
+        if (Array.isArray(obj)) {
+            return obj.map(item => removeUndefined(item));
+        }
+        if (obj !== null && typeof obj === 'object') {
+            const cleaned = {};
+            for (const [key, value] of Object.entries(obj)) {
+                if (value !== undefined) {
+                    cleaned[key] = removeUndefined(value);
+                }
+            }
+            return cleaned;
+        }
+        return obj;
+    };
+
+    const handlePayment = async () => {
+        if (processing) return;
+        setProcessing(true);
+
+        const orderId = generateOrderId();
+
+        try {
+            // Wait for payment to complete
+            const payment = await initiateRazorpayPayment({
+                amount: finalTotal,
+                description: `Order ${orderId} - ${cart.length} items`,
+                orderId,
+                prefill: {
+                    name: address.fullName,
+                    email: address.email,
+                    contact: address.phone,
+                },
+            });
+
+            // Payment successful — now save order to Firebase
+            try {
+                // Build clean order data (no undefined values)
+                const orderData = {
+                    orderId: orderId,
+                    items: cart.map((item, index) => ({
+                        productId: String(item.id || `item_${index}`),
+                        name: String(item.name || 'Unknown Item'),
+                        price: Number(item.price) || 0,
+                        quantity: Number(item.quantity) || 1,
+                        image: String(item.image || ''),
+                        category: String(item.category || ''),
+                        unit: String(item.unit || ''),
+                    })),
+                    address: {
+                        fullName: String(address.fullName || ''),
+                        phone: String(address.phone || ''),
+                        email: String(address.email || ''),
+                        addressLine1: String(address.addressLine1 || ''),
+                        addressLine2: String(address.addressLine2 || ''),
+                        city: String(address.city || ''),
+                        state: String(address.state || ''),
+                        pincode: String(address.pincode || ''),
+                    },
+                    subtotal: Number(cartTotal) || 0,
+                    deliveryFee: Number(deliveryFee) || 0,
+                    total: Number(finalTotal) || 0,
+                    payment: {
+                        razorpay_payment_id: String(payment.razorpay_payment_id || ''),
+                        razorpay_order_id: String(payment.razorpay_order_id || ''),
+                        method: 'razorpay',
+                        status: 'paid',
+                    },
+                    customerName: String(address.fullName || ''),
+                    customerEmail: String(address.email || ''),
+                    customerPhone: String(address.phone || ''),
+                    status: 'pending',
+                };
+
+                // Remove any remaining undefined values
+                const cleanOrderData = removeUndefined(orderData);
+
+                await createOrder(currentUser.uid, cleanOrderData);
+
+                // Clear the cart
+                await clearCart();
+
+                // Navigate to success page
+                navigate('/order-success', {
+                    state: {
+                        orderId,
+                        paymentId: payment.razorpay_payment_id,
+                        total: finalTotal,
+                        itemCount: cart.length,
+                    }
+                });
+            } catch (error) {
+                console.error('Error saving order:', error);
+                // Still navigate to success
+                await clearCart();
+                navigate('/order-success', {
+                    state: {
+                        orderId,
+                        paymentId: payment.razorpay_payment_id,
+                        total: finalTotal,
+                        itemCount: cart.length,
+                    }
+                });
+            }
+        } catch (error) {
+            console.log('Payment not completed:', error.message || error);
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    if (cart.length === 0) {
+        return (
+            <div className="checkout-page">
+                <motion.div
+                    className="empty-checkout"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                >
+                    <ShoppingBag size={80} strokeWidth={1} />
+                    <h2>Your cart is empty</h2>
+                    <p>Add some items before checking out.</p>
+                    <button onClick={() => navigate('/shop')} className="back-to-shop-btn">
+                        <ArrowLeft size={20} />
+                        Go to Shop
+                    </button>
+                </motion.div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="checkout-page">
+            {/* Header */}
+            <div className="checkout-header">
+                <h1>Checkout</h1>
+                <p>Complete your order securely</p>
+            </div>
+
+            {/* Progress Steps */}
+            <div className="checkout-progress">
+                <div className={`progress-step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
+                    <div className="step-circle">
+                        {step > 1 ? <CheckCircle size={20} /> : <span>1</span>}
+                    </div>
+                    <span className="step-label">Delivery Address</span>
+                </div>
+                <div className="progress-line" />
+                <div className={`progress-step ${step >= 2 ? 'active' : ''}`}>
+                    <div className="step-circle">
+                        <span>2</span>
+                    </div>
+                    <span className="step-label">Payment</span>
+                </div>
+            </div>
+
+            <div className="checkout-container">
+                {/* Left - Form */}
+                <div className="checkout-form-area">
+                    <AnimatePresence mode="wait">
+                        {step === 1 && (
+                            <motion.div
+                                key="address"
+                                className="checkout-card"
+                                initial={{ opacity: 0, x: -30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -30 }}
+                            >
+                                <div className="card-header">
+                                    <MapPin size={22} />
+                                    <h2>Delivery Address</h2>
+                                </div>
+
+                                <div className="form-grid">
+                                    <div className="form-group full-width">
+                                        <label>
+                                            <User size={16} />
+                                            Full Name *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="fullName"
+                                            value={address.fullName}
+                                            onChange={handleAddressChange}
+                                            placeholder="Enter your full name"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label>
+                                            <Phone size={16} />
+                                            Phone Number *
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            name="phone"
+                                            value={address.phone}
+                                            onChange={handleAddressChange}
+                                            placeholder="10-digit mobile number"
+                                            maxLength={10}
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label>
+                                            <Mail size={16} />
+                                            Email
+                                        </label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={address.email}
+                                            onChange={handleAddressChange}
+                                            placeholder="your@email.com"
+                                        />
+                                    </div>
+
+                                    <div className="form-group full-width">
+                                        <label>
+                                            <MapPin size={16} />
+                                            Address Line 1 *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="addressLine1"
+                                            value={address.addressLine1}
+                                            onChange={handleAddressChange}
+                                            placeholder="House/Flat No., Street Name"
+                                        />
+                                    </div>
+
+                                    <div className="form-group full-width">
+                                        <label>Address Line 2</label>
+                                        <input
+                                            type="text"
+                                            name="addressLine2"
+                                            value={address.addressLine2}
+                                            onChange={handleAddressChange}
+                                            placeholder="Landmark, Area (Optional)"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label>City *</label>
+                                        <input
+                                            type="text"
+                                            name="city"
+                                            value={address.city}
+                                            onChange={handleAddressChange}
+                                            placeholder="City name"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label>State</label>
+                                        <input
+                                            type="text"
+                                            name="state"
+                                            value={address.state}
+                                            onChange={handleAddressChange}
+                                            placeholder="State"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label>Pincode *</label>
+                                        <input
+                                            type="text"
+                                            name="pincode"
+                                            value={address.pincode}
+                                            onChange={handleAddressChange}
+                                            placeholder="6-digit pincode"
+                                            maxLength={6}
+                                        />
+                                    </div>
+                                </div>
+
+                                <button className="proceed-btn" onClick={handleProceedToPayment}>
+                                    Proceed to Payment
+                                    <ChevronRight size={20} />
+                                </button>
+                            </motion.div>
+                        )}
+
+                        {step === 2 && (
+                            <motion.div
+                                key="payment"
+                                className="checkout-card"
+                                initial={{ opacity: 0, x: 30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 30 }}
+                            >
+                                <div className="card-header">
+                                    <CreditCard size={22} />
+                                    <h2>Payment</h2>
+                                </div>
+
+                                {/* Delivery Address Summary */}
+                                <div className="address-summary">
+                                    <div className="summary-label">
+                                        <MapPin size={16} />
+                                        <span>Delivering to</span>
+                                        <button className="change-btn" onClick={() => setStep(1)}>Change</button>
+                                    </div>
+                                    <div className="summary-content">
+                                        <strong>{address.fullName}</strong>
+                                        <p>{address.addressLine1}{address.addressLine2 ? `, ${address.addressLine2}` : ''}</p>
+                                        <p>{address.city}, {address.state} - {address.pincode}</p>
+                                        <p className="summary-phone">📞 {address.phone}</p>
+                                    </div>
+                                </div>
+
+                                {/* Payment Methods */}
+                                <div className="payment-options">
+                                    <h3>Select Payment Method</h3>
+
+                                    <div className="payment-option selected">
+                                        <div className="option-radio">
+                                            <div className="radio-dot" />
+                                        </div>
+                                        <div className="option-info">
+                                            <div className="option-title">
+                                                <CreditCard size={18} />
+                                                <span>Pay with Razorpay</span>
+                                            </div>
+                                            <p className="option-desc">
+                                                Credit/Debit Card, UPI, Net Banking, Wallets
+                                            </p>
+                                        </div>
+                                        <div className="option-icons">
+                                            <span>💳</span>
+                                            <span>📱</span>
+                                            <span>🏦</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Security Info */}
+                                <div className="security-info">
+                                    <Shield size={18} />
+                                    <div>
+                                        <strong>100% Secure Payment</strong>
+                                        <p>All transactions are secure and encrypted by Razorpay</p>
+                                    </div>
+                                </div>
+
+                                <button
+                                    className={`pay-now-btn ${processing ? 'processing' : ''}`}
+                                    onClick={handlePayment}
+                                    disabled={processing}
+                                >
+                                    {processing ? (
+                                        <>
+                                            <div className="btn-spinner" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CreditCard size={20} />
+                                            Pay ₹{finalTotal.toFixed(2)}
+                                        </>
+                                    )}
+                                </button>
+
+                                <button className="back-btn" onClick={() => setStep(1)}>
+                                    <ArrowLeft size={18} />
+                                    Back to Address
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                {/* Right - Order Summary */}
+                <div className="checkout-summary">
+                    <div className="summary-card">
+                        <h3>
+                            <ShoppingBag size={20} />
+                            Order Summary
+                        </h3>
+
+                        <div className="summary-items">
+                            {cart.map((item, index) => (
+                                <div key={item.id || `cart-item-${index}`} className="summary-item">
+                                    <img src={item.image} alt={item.name} />
+                                    <div className="summary-item-info">
+                                        <span className="item-name">{item.name}</span>
+                                        <span className="item-qty">Qty: {item.quantity}</span>
+                                    </div>
+                                    <span className="item-total">₹{(item.price * item.quantity).toFixed(2)}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="summary-breakdown">
+                            <div className="breakdown-row">
+                                <span>Subtotal ({cart.length} items)</span>
+                                <span>₹{cartTotal.toFixed(2)}</span>
+                            </div>
+                            <div className="breakdown-row">
+                                <span>
+                                    <Truck size={16} /> Delivery
+                                </span>
+                                <span className={deliveryFee === 0 ? 'free-tag' : ''}>
+                                    {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="summary-grand-total">
+                            <span>Total</span>
+                            <span>₹{finalTotal.toFixed(2)}</span>
+                        </div>
+
+                        <div className="delivery-estimate">
+                            <Clock size={16} />
+                            <span>Estimated delivery: <strong>2-3 days</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Checkout;

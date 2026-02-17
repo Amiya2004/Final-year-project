@@ -1,6 +1,6 @@
 // Sample data for initial database seeding
 export const sampleCategories = [
-    { id: 'fruits-vegetables', name: 'Fruits & Vegetables', icon: '🥬', color: '#22c55e' },
+    { id: 'Vegetables', name: 'Vegetables', icon: '🥬', color: '#22c55e' },
     { id: 'dairy-eggs', name: 'Dairy & Eggs', icon: '🥛', color: '#3b82f6' },
     { id: 'bakery', name: 'Bakery', icon: '🍞', color: '#f59e0b' },
     { id: 'beverages', name: 'Beverages', icon: '🥤', color: '#8b5cf6' },
@@ -23,11 +23,11 @@ export const tamilNaduBrands = [
 
 export const sampleProducts = [
     // Fruits & Vegetables
-    { name: 'Fresh Organic Bananas', category: 'fruits-vegetables', brand: 'local', price: 45, stock: 150, unit: 'dozen', rating: 4.5, image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=300', expiryDate: '2026-02-15' },
-    { name: 'Red Tomatoes', category: 'fruits-vegetables', brand: 'local', price: 35, stock: 200, unit: 'kg', rating: 4.3, image: 'https://images.unsplash.com/photo-1546470427-0d4db154ceb8?w=300', expiryDate: '2026-02-10' },
-    { name: 'Fresh Spinach', category: 'fruits-vegetables', brand: 'local', price: 25, stock: 80, unit: 'bunch', rating: 4.7, image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=300', expiryDate: '2026-02-08' },
-    { name: 'Carrots', category: 'fruits-vegetables', brand: 'local', price: 40, stock: 120, unit: 'kg', rating: 4.4, image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=300', expiryDate: '2026-02-20' },
-    { name: 'Green Apples', category: 'fruits-vegetables', brand: 'local', price: 180, stock: 5, unit: 'kg', rating: 4.6, image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=300', expiryDate: '2026-02-25' },
+    { name: 'Fresh Organic Bananas', category: 'Vegetables', brand: 'local', price: 45, stock: 150, unit: 'dozen', rating: 4.5, image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=300', expiryDate: '2026-02-15' },
+    { name: 'Red Tomatoes', category: 'Vegetables', brand: 'local', price: 35, stock: 200, unit: 'kg', rating: 4.3, image: 'https://images.unsplash.com/photo-1546470427-0d4db154ceb8?w=300', expiryDate: '2026-02-10' },
+    { name: 'Fresh Spinach', category: 'Vegetables', brand: 'local', price: 25, stock: 80, unit: 'bunch', rating: 4.7, image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=300', expiryDate: '2026-02-08' },
+    { name: 'Carrots', category: 'Vegetables', brand: 'local', price: 40, stock: 120, unit: 'kg', rating: 4.4, image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=300', expiryDate: '2026-02-20' },
+    { name: 'Green Apples', category: 'Vegetables', brand: 'local', price: 180, stock: 5, unit: 'kg', rating: 4.6, image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=300', expiryDate: '2026-02-25' },
 
     // Dairy & Eggs
     { name: 'Farm Fresh Milk', category: 'dairy-eggs', brand: 'local', price: 60, stock: 100, unit: 'liter', rating: 4.8, image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=300', expiryDate: '2026-02-07' },
