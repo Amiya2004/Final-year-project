@@ -1,12 +1,9 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { Typography, Row, Col, Empty, Button, Card } from 'antd';
-import { ShoppingCart, Trash2, Heart } from 'lucide-react';
+﻿import { motion, AnimatePresence } from 'framer-motion';
+import { ShoppingCart, Trash2, Heart, ArrowRight } from 'lucide-react';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useCart } from '../../contexts/CartContext';
 import { Link } from 'react-router-dom';
 import './Wishlist.css';
-
-const { Title, Text, Paragraph } = Typography;
 
 const Wishlist = () => {
     const { wishlist, removeFromWishlist } = useWishlist();
@@ -14,89 +11,73 @@ const Wishlist = () => {
 
     const handleAddToCart = (product) => {
         addToCart(product);
-        // Optionally remove from wishlist after adding to cart
-        // removeFromWishlist(product.name);
     };
 
     return (
         <div className="wishlist-page">
             <div className="wishlist-header">
-                <Title level={2}>My Wishlist</Title>
-                <Text type="secondary">Keep track of items you love</Text>
+                <div className="wishlist-title-row">
+                    <Heart size={28} fill="#ef4444" color="#ef4444" />
+                    <h2>My Wishlist</h2>
+                </div>
+                <p>You have {wishlist.length} saved item{wishlist.length !== 1 ? 's' : ''}</p>
             </div>
 
-            <div className="wishlist-container">
-                {wishlist.length === 0 ? (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="empty-wishlist"
-                    >
-                        <Empty
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                            description={
-                                <div className="empty-description">
-                                    <Title level={4}>Your wishlist is empty</Title>
-                                    <Paragraph>Add items that you'd like to buy later!</Paragraph>
-                                </div>
-                            }
-                        >
-                            <Link to="/shop">
-                                <Button type="primary" size="large" className="shop-now-btn">
-                                    Explore Products
-                                </Button>
-                            </Link>
-                        </Empty>
-                    </motion.div>
-                ) : (
-                    <Row gutter={[24, 24]}>
-                        <AnimatePresence>
-                            {wishlist.map((product) => (
-                                <Col xs={24} sm={12} md={8} lg={6} key={product.name}>
-                                    <motion.div
-                                        layout
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.8 }}
-                                        transition={{ duration: 0.3 }}
+            {wishlist.length === 0 ? (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="empty-wishlist"
+                >
+                    <Heart size={64} color="#cbd5e1" />
+                    <h3>Your wishlist is empty</h3>
+                    <p>Save items you love and buy them later!</p>
+                    <Link to="/shop" className="explore-btn">
+                        Explore Products <ArrowRight size={18} />
+                    </Link>
+                </motion.div>
+            ) : (
+                <div className="wishlist-grid">
+                    <AnimatePresence>
+                        {wishlist.map((product) => (
+                            <motion.div
+                                key={product.name}
+                                layout
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.85 }}
+                                transition={{ duration: 0.3 }}
+                                className="wishlist-card"
+                            >
+                                <div className="wishlist-img-wrap">
+                                    <img src={product.image} alt={product.name} />
+                                    <button
+                                        className="remove-btn"
+                                        onClick={() => removeFromWishlist(product.name)}
+                                        title="Remove from wishlist"
                                     >
-                                        <Card
-                                            className="wishlist-item-card"
-                                            cover={
-                                                <div className="wishlist-image-container">
-                                                    <img alt={product.name} src={product.image} />
-                                                    <button
-                                                        className="remove-wishlist-btn"
-                                                        onClick={() => removeFromWishlist(product.name)}
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                </div>
-                                            }
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                                <div className="wishlist-info">
+                                    <span className="wishlist-category">{product.category}</span>
+                                    <h3 className="wishlist-name">{product.name}</h3>
+                                    <div className="wishlist-footer">
+                                        <span className="wishlist-price">&#8377;{product.price}</span>
+                                        <button
+                                            className="add-cart-btn"
+                                            onClick={() => handleAddToCart(product)}
                                         >
-                                            <div className="wishlist-item-info">
-                                                <span className="item-category">{product.category}</span>
-                                                <h3 className="item-name">{product.name}</h3>
-                                                <div className="item-footer">
-                                                    <span className="item-price">₹{product.price}</span>
-                                                    <Button
-                                                        type="primary"
-                                                        icon={<ShoppingCart size={16} />}
-                                                        onClick={() => handleAddToCart(product)}
-                                                        className="add-to-cart-btn"
-                                                    >
-                                                        Add to Cart
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    </motion.div>
-                                </Col>
-                            ))}
-                        </AnimatePresence>
-                    </Row>
-                )}
-            </div>
+                                            <ShoppingCart size={16} />
+                                            Add to Cart
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </div>
+            )}
         </div>
     );
 };
