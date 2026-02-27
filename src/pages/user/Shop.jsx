@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Filter, Grid, List, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter, Grid, List, SlidersHorizontal, Loader } from 'lucide-react';
 import ProductCard from '../../components/user/ProductCard';
 import ProductDetailsModal from '../../components/user/ProductDetailsModal';
-import { sampleProducts, sampleCategories } from '../../data/sampleData';
+import { subscribeToProducts } from '../../services/database';
+import { sampleCategories } from '../../data/sampleData';
 import styles from './Shop.module.css';
 
 const Shop = () => {
     const [searchParams] = useSearchParams();
-    const [products, setProducts] = useState(sampleProducts);
+    const [allProducts, setAllProducts] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
     const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
 
@@ -17,14 +20,24 @@ const Shop = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
 
+    // Subscribe to real-time product updates from Firebase
     useEffect(() => {
-        let filtered = [...sampleProducts];
+        const unsubscribe = subscribeToProducts((data) => {
+            setAllProducts(data);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    // Filter and sort products whenever dependencies change
+    useEffect(() => {
+        let filtered = [...allProducts];
 
         // Search filter
         if (searchQuery) {
             filtered = filtered.filter(p =>
                 p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                p.category.toLowerCase().includes(searchQuery.toLowerCase())
+                (p.category && p.category.toLowerCase().includes(searchQuery.toLowerCase()))
             );
         }
 
@@ -32,8 +45,6 @@ const Shop = () => {
         if (selectedCategory !== 'all') {
             filtered = filtered.filter(p => p.category === selectedCategory);
         }
-
-
 
         // Sort
         switch (sortBy) {
@@ -44,14 +55,23 @@ const Shop = () => {
                 filtered.sort((a, b) => b.price - a.price);
                 break;
             case 'rating':
-                filtered.sort((a, b) => b.rating - a.rating);
+                filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 break;
             default:
                 filtered.sort((a, b) => a.name.localeCompare(b.name));
         }
 
         setProducts(filtered);
-    }, [searchQuery, selectedCategory, sortBy]);
+    }, [searchQuery, selectedCategory, sortBy, allProducts]);
+
+    if (loading) {
+        return (
+            <div className={styles.shopPage} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                <Loader size={32} className="spinning" />
+                <span style={{ marginLeft: '12px' }}>Loading products...</span>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.shopPage}>
@@ -128,7 +148,7 @@ const Shop = () => {
                     <div className={styles.productsGrid}>
                         {products.map((product, index) => (
                             <motion.div
-                                key={product.name}
+                                key={product.id || product.name}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.05 }}

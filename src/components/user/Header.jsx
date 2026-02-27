@@ -5,6 +5,7 @@ import { ShoppingCart, User, Search, Menu, X, LogOut, Package, Heart } from 'luc
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import './Header.css';
 
 const Header = () => {
@@ -14,6 +15,7 @@ const Header = () => {
     const { currentUser, logout, isAdmin } = useAuth();
     const { cartCount } = useCart();
     const { wishlistCount } = useWishlist();
+    const { settings } = useSettings();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -39,8 +41,7 @@ const Header = () => {
         <header className="header">
             <div className="header-container">
                 <Link to="/" className="header-logo">
-                    <span className="logo-icon">🛒</span>
-                    <span className="logo-accent">Nellai Velmurgan Store</span>
+                    <img src="/logo.svg" alt={settings.storeName} className="header-logo-img" />
                 </Link>
 
                 <form className="header-search" onSubmit={handleSearch}>

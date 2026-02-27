@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 import { LoadingProvider, useLoading } from './contexts/LoadingContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 
 // Components
 import Loader from './components/common/Loader';
@@ -33,6 +34,7 @@ import StockManagement from './pages/admin/StockManagement';
 import ExpiryAlerts from './pages/admin/ExpiryAlerts';
 import AdminSetup from './pages/admin/AdminSetup';
 import Orders from './pages/admin/Orders';
+import Settings from './pages/admin/Settings';
 
 import './App.css';
 
@@ -41,7 +43,7 @@ const AdminRoute = ({ children }) => {
   const { currentUser, userRole, loading } = useAuth();
 
   if (loading) {
-    return <Loader message="Checking credentials..." />;
+    return <Loader message="Verifying credentials..." />;
   }
 
   if (!currentUser || userRole !== 'admin') {
@@ -65,7 +67,7 @@ const AppContent = () => {
   }, []);
 
   if (initialLoading || authLoading) {
-    return <Loader message="Loading FreshMart..." />;
+    return <Loader message="Welcome to Nellai Velmurugan Store..." />;
   }
 
   return (
@@ -103,7 +105,7 @@ const AppContent = () => {
           <Route path="stock" element={<StockManagement />} />
 
           <Route path="expiry" element={<ExpiryAlerts />} />
-          <Route path="settings" element={<div className="coming-soon admin-coming"><h1>Settings</h1><p>Coming Soon</p></div>} />
+          <Route path="settings" element={<Settings />} />
         </Route>
 
         {/* 404 */}
@@ -117,13 +119,15 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <WishlistProvider>
-          <CartProvider>
-            <LoadingProvider>
-              <AppContent />
-            </LoadingProvider>
-          </CartProvider>
-        </WishlistProvider>
+        <SettingsProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <LoadingProvider>
+                <AppContent />
+              </LoadingProvider>
+            </CartProvider>
+          </WishlistProvider>
+        </SettingsProvider>
       </AuthProvider>
     </BrowserRouter>
   );

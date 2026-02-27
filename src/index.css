@@ -24,7 +24,10 @@
   --slate-900: #0f172a;
 
   /* Accent Colors */
+  --red-50: #fef2f2;
+  --red-100: #fee2e2;
   --red-500: #ef4444;
+  --red-600: #dc2626;
   --orange-500: #f97316;
   --amber-500: #f59e0b;
   --blue-500: #3b82f6;
@@ -67,4 +70,41 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+/* Loading spinner animation */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Dark Theme */
+.dark-theme {
+  /* In dark theme, reverse the slate colors */
+  --slate-50: #0f172a;
+  --slate-100: #1e293b;
+  --slate-200: #334155;
+  --slate-300: #475569;
+  --slate-400: #64748b;
+  --slate-500: #94a3b8;
+  --slate-600: #cbd5e1;
+  --slate-700: #e2e8f0;
+  --slate-800: #f1f5f9;
+  --slate-900: #f8fafc;
+
+  /* Adjust shadows for dark theme */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.5);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+}
+
+.dark-theme body {
+  background-color: var(--slate-900);
+  color: var(--slate-100);
 }

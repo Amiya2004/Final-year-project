@@ -1,12 +1,12 @@
 // Sample data for initial database seeding
 export const sampleCategories = [
-    { id: 'Vegetables', name: 'Vegetables', icon: '🥬', color: '#22c55e' },
+    { id: 'Vegetables', name: 'Vegetables', icon: '🥬', image: '/Vegetables.jpg', color: '#22c55e' },
     { id: 'dairy-eggs', name: 'Dairy & Eggs', icon: '🥛', color: '#3b82f6' },
-    { id: 'bakery', name: 'Bakery', icon: '🍞', color: '#f59e0b' },
+    { id: 'tea-coffee', name: 'Tea, Coffee & Health Drinks', icon: '☕', color: '#92400e' },
     { id: 'beverages', name: 'Beverages', icon: '🥤', color: '#8b5cf6' },
     { id: 'snacks', name: 'Snacks', icon: '🍿', color: '#ec4899' },
     { id: 'household', name: 'Soaps & Shampoos', icon: '🧼', color: '#06b6d4' },
-    { id: 'spices', name: 'Spices & Masala', icon: '🌶️', color: '#ef4444' },
+    { id: 'spices', name: 'Spices & Masala', icon: '🌶️', image: '/Masala.jpg', color: '#ef4444' },
     { id: 'grains', name: 'Grains & Pulses', icon: '🌾', color: '#84cc16' }
 ];
 

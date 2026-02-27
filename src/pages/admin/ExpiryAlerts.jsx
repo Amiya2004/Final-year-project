@@ -1,13 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Calendar, Trash2, Tag, Package, Clock } from 'lucide-react';
-import { sampleProducts } from '../../data/sampleData';
+import { AlertTriangle, Calendar, Trash2, Tag, Package, Clock, Loader } from 'lucide-react';
+import { subscribeToProducts } from '../../services/database';
 import './ExpiryAlerts.css';
 
 const ExpiryAlerts = () => {
+    const [allProducts, setAllProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const today = new Date();
 
+    useEffect(() => {
+        const unsubscribe = subscribeToProducts((data) => {
+            setAllProducts(data);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
+
     const getExpiryStatus = (expiryDate) => {
+        if (!expiryDate) return { status: 'safe', label: 'No Expiry', days: 999, color: '#22c55e' };
         const expiry = new Date(expiryDate);
         const daysUntil = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
 
@@ -18,7 +29,7 @@ const ExpiryAlerts = () => {
         return { status: 'safe', label: 'Safe', days: daysUntil, color: '#22c55e' };
     };
 
-    const expiringProducts = sampleProducts
+    const expiringProducts = allProducts
         .map(p => ({ ...p, expiryInfo: getExpiryStatus(p.expiryDate) }))
         .filter(p => p.expiryInfo.days <= 30)
         .sort((a, b) => a.expiryInfo.days - b.expiryInfo.days);
@@ -40,6 +51,15 @@ const ExpiryAlerts = () => {
         }
         return { action: 'Apply 15% discount', icon: Tag, color: '#f59e0b' };
     };
+
+    if (loading) {
+        return (
+            <div className="expiry-alerts" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                <Loader size={32} className="spinning" />
+                <span style={{ marginLeft: '12px' }}>Loading expiry data...</span>
+            </div>
+        );
+    }
 
     return (
         <div className="expiry-alerts">
@@ -113,7 +133,7 @@ const ExpiryAlerts = () => {
                     </h2>
                     <div className="products-grid">
                         {expired.map((product, index) => (
-                            <ProductExpiryCard key={product.name} product={product} index={index} getSuggestion={getSuggestion} />
+                            <ProductExpiryCard key={product.id || product.name} product={product} index={index} getSuggestion={getSuggestion} />
                         ))}
                     </div>
                 </div>
@@ -128,7 +148,7 @@ const ExpiryAlerts = () => {
                     </h2>
                     <div className="products-grid">
                         {critical.map((product, index) => (
-                            <ProductExpiryCard key={product.name} product={product} index={index} getSuggestion={getSuggestion} />
+                            <ProductExpiryCard key={product.id || product.name} product={product} index={index} getSuggestion={getSuggestion} />
                         ))}
                     </div>
                 </div>
@@ -143,7 +163,7 @@ const ExpiryAlerts = () => {
                     </h2>
                     <div className="products-grid">
                         {warning.map((product, index) => (
-                            <ProductExpiryCard key={product.name} product={product} index={index} getSuggestion={getSuggestion} />
+                            <ProductExpiryCard key={product.id || product.name} product={product} index={index} getSuggestion={getSuggestion} />
                         ))}
                     </div>
                 </div>
@@ -158,7 +178,7 @@ const ExpiryAlerts = () => {
                     </h2>
                     <div className="products-grid">
                         {caution.map((product, index) => (
-                            <ProductExpiryCard key={product.name} product={product} index={index} getSuggestion={getSuggestion} />
+                            <ProductExpiryCard key={product.id || product.name} product={product} index={index} getSuggestion={getSuggestion} />
                         ))}
                     </div>
                 </div>

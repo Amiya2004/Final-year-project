@@ -40,6 +40,13 @@
     color: white;
 }
 
+.sidebar-logo-img {
+    height: auto;
+    object-fit: contain;
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
 .collapse-btn {
     width: 36px;
     height: 36px;

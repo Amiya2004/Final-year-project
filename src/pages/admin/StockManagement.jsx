@@ -1,17 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Download, AlertTriangle, TrendingDown, TrendingUp, Package } from 'lucide-react';
-import { sampleProducts, sampleCategories } from '../../data/sampleData';
+import { Search, Filter, Download, AlertTriangle, TrendingDown, TrendingUp, Package, Loader } from 'lucide-react';
+import { subscribeToProducts } from '../../services/database';
+import { sampleCategories } from '../../data/sampleData';
 import './StockManagement.css';
 
 const StockManagement = () => {
-    const [products, setProducts] = useState(sampleProducts);
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [stockFilter, setStockFilter] = useState('all');
 
+    useEffect(() => {
+        const unsubscribe = subscribeToProducts((data) => {
+            setProducts(data);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
+
     const getStockStatus = (stock, expiryDate) => {
-        const daysUntilExpiry = Math.ceil((new Date(expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+        const daysUntilExpiry = expiryDate ? Math.ceil((new Date(expiryDate) - new Date()) / (1000 * 60 * 60 * 24)) : 999;
 
         if (stock === 0) return { status: 'out-of-stock', label: 'Out of Stock', color: '#dc2626' };
         if (stock <= 10) return { status: 'low-stock', label: 'Low Stock', color: '#ef4444' };
@@ -35,10 +45,20 @@ const StockManagement = () => {
         overstock: products.filter(p => p.stock > 200).length,
         outOfStock: products.filter(p => p.stock === 0).length,
         expiring: products.filter(p => {
+            if (!p.expiryDate) return false;
             const days = Math.ceil((new Date(p.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
             return days <= 30 && days > 0;
         }).length
     };
+
+    if (loading) {
+        return (
+            <div className="stock-management" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                <Loader size={32} className="spinning" />
+                <span style={{ marginLeft: '12px' }}>Loading stock data...</span>
+            </div>
+        );
+    }
 
     return (
         <div className="stock-management">
@@ -144,7 +164,7 @@ const StockManagement = () => {
                             const stockInfo = getStockStatus(product.stock, product.expiryDate);
                             return (
                                 <motion.tr
-                                    key={product.name}
+                                    key={product.id || product.name}
                                     className={stockInfo.status}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -164,7 +184,7 @@ const StockManagement = () => {
                                         </span>
                                     </td>
                                     <td className="price-cell">₹{product.price}</td>
-                                    <td className="expiry-cell">{new Date(product.expiryDate).toLocaleDateString('en-IN')}</td>
+                                    <td className="expiry-cell">{product.expiryDate ? new Date(product.expiryDate).toLocaleDateString('en-IN') : 'N/A'}</td>
                                     <td>
                                         <span
                                             className="status-badge"

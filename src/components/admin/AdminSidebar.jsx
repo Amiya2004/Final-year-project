@@ -12,9 +12,11 @@ import {
     Menu
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import './AdminSidebar.css';
 
 const AdminSidebar = () => {
+    const { settings } = useSettings();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { logout } = useAuth();
     const navigate = useNavigate();
@@ -38,8 +40,12 @@ const AdminSidebar = () => {
         <aside className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
             <div className="sidebar-header">
                 <div className="sidebar-logo">
-                    <span className="logo-icon">🛒</span>
-                    {!isCollapsed && <span className="logo-text">FreshMart</span>}
+                    <img
+                        src="/logo.svg"
+                        alt={settings.storeName}
+                        className="sidebar-logo-img"
+                        style={{ width: isCollapsed ? '42px' : '70px' }}
+                    />
                 </div>
                 <button
                     className="collapse-btn"

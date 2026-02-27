@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useSettings } from '../../contexts/SettingsContext';
 import {
     Typography,
     Row,
@@ -22,6 +23,7 @@ const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
 
 const Contact = () => {
+    const { settings } = useSettings();
     const [form] = Form.useForm();
 
     const onFinish = (values) => {
@@ -67,7 +69,7 @@ const Contact = () => {
                                     <div className="info-text">
                                         <Text strong>Address</Text>
                                         <Paragraph>
-                                            Nellai Velmurugan Store<br />
+                                            {settings.storeName}<br />
                                             Sullipalayam, Perundurai – 638052<br />
                                             Tamil Nadu, India
                                         </Paragraph>
@@ -80,7 +82,7 @@ const Contact = () => {
                                     </div>
                                     <div className="info-text">
                                         <Text strong>Phone Number</Text>
-                                        <Paragraph>+91 9842856303</Paragraph>
+                                        <Paragraph>{settings.contactPhone}</Paragraph>
                                     </div>
                                 </div>
 
@@ -90,7 +92,7 @@ const Contact = () => {
                                     </div>
                                     <div className="info-text">
                                         <Text strong>Email</Text>
-                                        <Paragraph>velmurugam1623@gmail.com</Paragraph>
+                                        <Paragraph>{settings.contactEmail}</Paragraph>
                                     </div>
                                 </div>
 

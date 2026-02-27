@@ -113,3 +113,73 @@ export const subscribeToOrders = (callback) => {
         }
     });
 };
+
+// App Settings
+export const getSettings = async () => {
+    const settingsRef = ref(database, 'settings');
+    const snapshot = await get(settingsRef);
+    
+    // Default settings with all new fields
+    const defaultSettings = {
+        // General Settings
+        storeName: 'FreshMart',
+        contactEmail: 'contact@freshmart.com',
+        contactPhone: '+91 98765 43210',
+        deliveryFee: 40,
+        minOrderForFreeDelivery: 500,
+        maintenanceMode: false,
+        lowStockThreshold: 10,
+        orderNotifications: true,
+        // Theme Settings
+        theme: 'light',
+        primaryColor: '#059669',
+        darkMode: false,
+        // Business Settings
+        currency: 'INR',
+        businessHours: {
+            open: '09:00',
+            close: '21:00',
+            daysOpen: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+        },
+        // Email Settings
+        emailNotifications: true,
+        orderConfirmationEmail: true,
+        lowStockEmail: true,
+        // System Settings
+        maxFileUpload: 5,
+        autoBackup: true,
+        backupFrequency: 'weekly'
+    };
+    
+    if (snapshot.exists()) {
+        // Merge existing settings with defaults to ensure all fields are present
+        return { ...defaultSettings, ...snapshot.val() };
+    }
+    return defaultSettings;
+};
+
+export const updateSettings = async (settings) => {
+    const settingsRef = ref(database, 'settings');
+    await update(settingsRef, {
+        ...settings,
+        updatedAt: new Date().toISOString()
+    });
+};
+
+// Seed products from sampleData into Firebase (only if no products exist)
+export const seedProducts = async (sampleProducts) => {
+    const productsRef = ref(database, 'products');
+    const snapshot = await get(productsRef);
+    if (snapshot.exists()) {
+        return false; // Products already exist, skip seeding
+    }
+    // Seed all sample products
+    for (const product of sampleProducts) {
+        const newRef = push(productsRef);
+        await set(newRef, {
+            ...product,
+            createdAt: new Date().toISOString()
+        });
+    }
+    return true; // Seeded successfully
+};

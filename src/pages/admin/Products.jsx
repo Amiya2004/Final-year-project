@@ -1,25 +1,103 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit2, Trash2, Package } from 'lucide-react';
-import { sampleProducts, sampleCategories } from '../../data/sampleData';
+import { Plus, Search, Edit2, Trash2, Package, Loader } from 'lucide-react';
+import { subscribeToProducts, addProduct, updateProduct, deleteProduct } from '../../services/database';
+import { sampleCategories } from '../../data/sampleData';
 import './Products.css';
 
 const Products = () => {
-    const [products, setProducts] = useState(sampleProducts);
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '', category: '', price: '', stock: '', unit: '',
+        expiryDate: '', image: '', rating: 4.5
+    });
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        const unsubscribe = subscribeToProducts((data) => {
+            setProducts(data);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
 
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const handleDelete = (index) => {
-        if (window.confirm('Are you sure you want to delete this product?')) {
-            const updatedProducts = products.filter((_, i) => i !== index);
-            setProducts(updatedProducts);
+    const handleOpenAdd = () => {
+        setFormData({ name: '', category: '', price: '', stock: '', unit: '', expiryDate: '', image: '', rating: 4.5 });
+        setShowAddModal(true);
+    };
+
+    const handleOpenEdit = (product) => {
+        setFormData({
+            name: product.name || '',
+            category: product.category || '',
+            price: product.price || '',
+            stock: product.stock || '',
+            unit: product.unit || '',
+            expiryDate: product.expiryDate || '',
+            image: product.image || '',
+            rating: product.rating || 4.5,
+            brands: product.brands || [],
+            availableUnits: product.availableUnits || []
+        });
+        setEditingProduct(product);
+    };
+
+    const handleFormChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            const productData = {
+                ...formData,
+                price: Number(formData.price),
+                stock: Number(formData.stock),
+                rating: Number(formData.rating)
+            };
+
+            if (editingProduct) {
+                await updateProduct(editingProduct.id, productData);
+            } else {
+                await addProduct(productData);
+            }
+            setShowAddModal(false);
+            setEditingProduct(null);
+        } catch (err) {
+            console.error('Error saving product:', err);
+            alert('Failed to save product. Please try again.');
+        }
+        setSaving(false);
+    };
+
+    const handleDelete = async (product) => {
+        if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
+            try {
+                await deleteProduct(product.id);
+            } catch (err) {
+                console.error('Error deleting product:', err);
+                alert('Failed to delete product.');
+            }
         }
     };
+
+    if (loading) {
+        return (
+            <div className="products-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                <Loader size={32} className="spinning" />
+                <span style={{ marginLeft: '12px' }}>Loading products from database...</span>
+            </div>
+        );
+    }
 
     return (
         <div className="products-page">
@@ -28,7 +106,7 @@ const Products = () => {
                     <h1>Products</h1>
                     <p>Manage your product inventory</p>
                 </div>
-                <button className="add-btn" onClick={() => setShowAddModal(true)}>
+                <button className="add-btn" onClick={handleOpenAdd}>
                     <Plus size={20} />
                     Add Product
                 </button>
@@ -44,7 +122,6 @@ const Products = () => {
                     <span className="stat-value">{sampleCategories.length}</span>
                     <span className="stat-label">Categories</span>
                 </div>
-
             </div>
 
             {/* Search */}
@@ -62,7 +139,7 @@ const Products = () => {
             <div className="products-grid">
                 {filteredProducts.map((product, index) => (
                     <motion.div
-                        key={product.name}
+                        key={product.id}
                         className="product-card"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -79,10 +156,10 @@ const Products = () => {
                             </div>
                         </div>
                         <div className="product-actions">
-                            <button className="edit-btn" onClick={() => setEditingProduct(product)}>
+                            <button className="edit-btn" onClick={() => handleOpenEdit(product)}>
                                 <Edit2 size={16} />
                             </button>
-                            <button className="delete-btn" onClick={() => handleDelete(index)}>
+                            <button className="delete-btn" onClick={() => handleDelete(product)}>
                                 <Trash2 size={16} />
                             </button>
                         </div>
@@ -90,7 +167,7 @@ const Products = () => {
                 ))}
             </div>
 
-            {filteredProducts.length === 0 && (
+            {filteredProducts.length === 0 && !loading && (
                 <div className="no-products">
                     <Package size={48} />
                     <h3>No products found</h3>
@@ -108,19 +185,25 @@ const Products = () => {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h2>{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
-                        <form className="product-form">
+                        <form className="product-form" onSubmit={handleSubmit}>
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Product Name</label>
                                     <input
                                         type="text"
                                         placeholder="Enter product name"
-                                        defaultValue={editingProduct?.name || ''}
+                                        value={formData.name}
+                                        onChange={(e) => handleFormChange('name', e.target.value)}
+                                        required
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label>Category</label>
-                                    <select defaultValue={editingProduct?.category || ''}>
+                                    <select
+                                        value={formData.category}
+                                        onChange={(e) => handleFormChange('category', e.target.value)}
+                                        required
+                                    >
                                         <option value="">Select Category</option>
                                         {sampleCategories.map(cat => (
                                             <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -132,7 +215,9 @@ const Products = () => {
                                     <input
                                         type="number"
                                         placeholder="Enter price"
-                                        defaultValue={editingProduct?.price || ''}
+                                        value={formData.price}
+                                        onChange={(e) => handleFormChange('price', e.target.value)}
+                                        required
                                     />
                                 </div>
                             </div>
@@ -142,14 +227,26 @@ const Products = () => {
                                     <input
                                         type="number"
                                         placeholder="Enter stock"
-                                        defaultValue={editingProduct?.stock || ''}
+                                        value={formData.stock}
+                                        onChange={(e) => handleFormChange('stock', e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Unit</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. kg, liter, pack"
+                                        value={formData.unit}
+                                        onChange={(e) => handleFormChange('unit', e.target.value)}
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label>Expiry Date</label>
                                     <input
                                         type="date"
-                                        defaultValue={editingProduct?.expiryDate || ''}
+                                        value={formData.expiryDate}
+                                        onChange={(e) => handleFormChange('expiryDate', e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -158,15 +255,16 @@ const Products = () => {
                                 <input
                                     type="url"
                                     placeholder="Enter image URL"
-                                    defaultValue={editingProduct?.image || ''}
+                                    value={formData.image}
+                                    onChange={(e) => handleFormChange('image', e.target.value)}
                                 />
                             </div>
                             <div className="form-actions">
                                 <button type="button" className="cancel-btn" onClick={() => { setShowAddModal(false); setEditingProduct(null); }}>
                                     Cancel
                                 </button>
-                                <button type="submit" className="save-btn">
-                                    {editingProduct ? 'Update Product' : 'Add Product'}
+                                <button type="submit" className="save-btn" disabled={saving}>
+                                    {saving ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}
                                 </button>
                             </div>
                         </form>

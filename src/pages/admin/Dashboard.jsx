@@ -9,7 +9,8 @@ import {
     ShoppingCart,
     DollarSign,
     ArrowUp,
-    ArrowDown
+    ArrowDown,
+    Loader
 } from 'lucide-react';
 import {
     BarChart,
@@ -26,25 +27,70 @@ import {
     Cell,
     Legend
 } from 'recharts';
-import { sampleProducts, monthlySalesData, categorySalesData, sampleOrders } from '../../data/sampleData';
+import { subscribeToProducts, subscribeToOrders, seedProducts } from '../../services/database';
+import { monthlySalesData, categorySalesData, sampleProducts } from '../../data/sampleData';
 import './Dashboard.css';
 
 const Dashboard = () => {
-    const [products] = useState(sampleProducts);
-    const [orders] = useState(sampleOrders);
+    const [products, setProducts] = useState([]);
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [seeding, setSeeding] = useState(false);
+
+    useEffect(() => {
+        let productsLoaded = false;
+        let ordersLoaded = false;
+
+        const checkLoaded = () => {
+            if (productsLoaded && ordersLoaded) setLoading(false);
+        };
+
+        const unsubProducts = subscribeToProducts((data) => {
+            setProducts(data);
+            productsLoaded = true;
+            checkLoaded();
+        });
+
+        const unsubOrders = subscribeToOrders((data) => {
+            setOrders(data);
+            ordersLoaded = true;
+            checkLoaded();
+        });
+
+        return () => {
+            unsubProducts();
+            unsubOrders();
+        };
+    }, []);
+
+    const handleSeedData = async () => {
+        setSeeding(true);
+        try {
+            const result = await seedProducts(sampleProducts);
+            if (result) {
+                alert('Initial product data has been seeded to Firebase successfully!');
+            } else {
+                alert('Products already exist in the database. No seeding needed.');
+            }
+        } catch (err) {
+            console.error('Seeding error:', err);
+            alert('Failed to seed data: ' + err.message);
+        }
+        setSeeding(false);
+    };
 
     const totalProducts = products.length;
-    const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
+    const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
     const lowStockItems = products.filter(p => p.stock <= 10 && p.stock > 0).length;
     const overstockItems = products.filter(p => p.stock > 200).length;
     const expiryAlertItems = products.filter(p => {
+        if (!p.expiryDate) return false;
         const daysUntilExpiry = Math.ceil((new Date(p.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
         return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
     }).length;
 
-
     const pendingOrders = orders.filter(o => o.status === 'pending').length;
-    const todaySales = orders.reduce((sum, o) => sum + o.total, 0);
+    const todaySales = orders.reduce((sum, o) => sum + (o.total || 0), 0);
 
     const statsCards = [
         { label: 'Total Products', value: totalProducts, icon: Package, color: '#3b82f6', change: '+12%', up: true },
@@ -52,10 +98,18 @@ const Dashboard = () => {
         { label: 'Low Stock Items', value: lowStockItems, icon: TrendingDown, color: '#ef4444', change: '-3', up: false },
         { label: 'Overstock Items', value: overstockItems, icon: TrendingUp, color: '#f59e0b', change: '+2', up: true },
         { label: 'Expiry Alerts', value: expiryAlertItems, icon: AlertTriangle, color: '#f97316', change: '5 items', up: false },
-
         { label: 'Pending Orders', value: pendingOrders, icon: ShoppingCart, color: '#06b6d4', change: '4 new', up: true },
         { label: "Today's Sales", value: `₹${todaySales.toLocaleString()}`, icon: DollarSign, color: '#10b981', change: '+18%', up: true }
     ];
+
+    if (loading) {
+        return (
+            <div className="dashboard" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                <Loader size={32} className="spinning" />
+                <span style={{ marginLeft: '12px' }}>Loading dashboard data...</span>
+            </div>
+        );
+    }
 
     return (
         <div className="dashboard">
@@ -64,13 +118,34 @@ const Dashboard = () => {
                     <h1>Dashboard Overview</h1>
                     <p>Welcome back! Here's what's happening with your store today.</p>
                 </div>
-                <div className="header-date">
-                    {new Date().toLocaleDateString('en-IN', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    })}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    {products.length === 0 && (
+                        <button
+                            onClick={handleSeedData}
+                            disabled={seeding}
+                            style={{
+                                padding: '10px 20px',
+                                background: '#22c55e',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: seeding ? 'not-allowed' : 'pointer',
+                                fontWeight: '600',
+                                fontSize: '14px',
+                                opacity: seeding ? 0.7 : 1
+                            }}
+                        >
+                            {seeding ? 'Seeding...' : '🌱 Seed Initial Data'}
+                        </button>
+                    )}
+                    <div className="header-date">
+                        {new Date().toLocaleDateString('en-IN', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        })}
+                    </div>
                 </div>
             </div>
 
@@ -185,18 +260,22 @@ const Dashboard = () => {
                 >
                     <h3>Recent Orders</h3>
                     <div className="orders-list">
-                        {orders.slice(0, 5).map((order, index) => (
-                            <div key={index} className="order-item">
-                                <div className="order-info">
-                                    <span className="order-customer">{order.customerName}</span>
-                                    <span className="order-items">{order.items.length} items</span>
+                        {orders.length === 0 ? (
+                            <p style={{ textAlign: 'center', color: '#94a3b8', padding: '20px' }}>No orders yet</p>
+                        ) : (
+                            orders.slice(0, 5).map((order, index) => (
+                                <div key={order.id || index} className="order-item">
+                                    <div className="order-info">
+                                        <span className="order-customer">{order.customerName || 'Customer'}</span>
+                                        <span className="order-items">{order.items ? order.items.length : 0} items</span>
+                                    </div>
+                                    <div className="order-details">
+                                        <span className="order-amount">₹{order.total || 0}</span>
+                                        <span className={`order-status ${order.status}`}>{order.status}</span>
+                                    </div>
                                 </div>
-                                <div className="order-details">
-                                    <span className="order-amount">₹{order.total}</span>
-                                    <span className={`order-status ${order.status}`}>{order.status}</span>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </motion.div>
             </div>

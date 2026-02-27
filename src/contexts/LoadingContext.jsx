@@ -6,10 +6,25 @@ export const useLoading = () => useContext(LoadingContext);
 
 export const LoadingProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
-    const [loadingMessage, setLoadingMessage] = useState('Loading...');
+    const [loadingMessage, setLoadingMessage] = useState('Preparing fresh experience...');
 
-    const showLoading = (message = 'Loading...') => {
-        setLoadingMessage(message);
+    const brandedMessages = [
+        'Preparing fresh experience...',
+        'Loading freshest products...',
+        'Setting up your store...',
+        'Organizing fresh inventory...',
+        'Getting everything ready...',
+        'Loading Nellai Velmurugan Store...'
+    ];
+
+    const showLoading = (message = null) => {
+        if (message) {
+            setLoadingMessage(message);
+        } else {
+            // Use a random branded message if none provided
+            const randomMessage = brandedMessages[Math.floor(Math.random() * brandedMessages.length)];
+            setLoadingMessage(randomMessage);
+        }
         setIsLoading(true);
     };
 
@@ -18,7 +33,13 @@ export const LoadingProvider = ({ children }) => {
     };
 
     return (
-        <LoadingContext.Provider value={{ isLoading, loadingMessage, showLoading, hideLoading }}>
+        <LoadingContext.Provider value={{ 
+            isLoading, 
+            loadingMessage, 
+            showLoading, 
+            hideLoading,
+            brandedMessages 
+        }}>
             {children}
         </LoadingContext.Provider>
     );

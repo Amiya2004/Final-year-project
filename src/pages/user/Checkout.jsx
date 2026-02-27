@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { createOrder } from '../../services/database';
 import { initiateRazorpayPayment, generateOrderId } from '../../services/razorpay';
 import './Checkout.css';
@@ -14,6 +15,7 @@ import './Checkout.css';
 const Checkout = () => {
     const { cart, cartTotal, clearCart } = useCart();
     const { currentUser } = useAuth();
+    const { settings } = useSettings();
     const navigate = useNavigate();
 
     const [step, setStep] = useState(1); // 1: Address, 2: Payment
@@ -29,7 +31,7 @@ const Checkout = () => {
         pincode: '',
     });
 
-    const deliveryFee = cartTotal >= 500 ? 0 : 40;
+    const deliveryFee = cartTotal >= settings.minOrderForFreeDelivery ? 0 : settings.deliveryFee;
     const finalTotal = cartTotal + deliveryFee;
 
     const handleAddressChange = (e) => {

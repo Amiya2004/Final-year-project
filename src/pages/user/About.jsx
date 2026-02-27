@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useSettings } from '../../contexts/SettingsContext';
 import { Typography, Row, Col, Card, Divider, List } from 'antd';
 import {
     CheckCircleOutlined,
@@ -14,6 +15,7 @@ import './About.css';
 const { Title, Paragraph } = Typography;
 
 const About = () => {
+    const { settings } = useSettings();
     const missionItems = [
         'Provide fresh and quality grocery products',
         'Ensure transparent pricing',
@@ -68,10 +70,10 @@ const About = () => {
                         <ShopOutlined />
                     </motion.div>
                     <Title level={1} className="about-hero-title">
-                        About <span className="store-name-highlight">Nellai Velmurugan Store</span>
+                        About <span className="store-name-highlight">{settings.storeName}</span>
                     </Title>
                     <Paragraph className="about-hero-subtitle">
-                        Nellai Velmurugan Store is a trusted local grocery shop providing quality food
+                        {settings.storeName} is a trusted local grocery shop providing quality food
                         products and daily essentials to customers in our area. Our mission is to deliver
                         fresh products, reliable brands, and affordable prices to every household.
                     </Paragraph>
@@ -208,7 +210,7 @@ const About = () => {
                     </Title>
                     <Paragraph className="about-cta-text">
                         Visit us today or shop online to enjoy fresh groceries, great prices, and the
-                        trusted service that Nellai Velmurugan Store is known for.
+                        trusted service that {settings.storeName} is known for.
                     </Paragraph>
                     <div className="about-cta-badges">
                         <div className="cta-badge">

@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ArrowRight, Star, TrendingUp, Sparkles, Tag, Quote } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, Star, TrendingUp, Sparkles, Tag, Quote, Loader } from 'lucide-react';
 import ProductCard from '../../components/user/ProductCard';
-import { sampleProducts, sampleCategories, heroSlides, customerReviews } from '../../data/sampleData';
+import { subscribeToProducts } from '../../services/database';
+import { sampleCategories, heroSlides, customerReviews } from '../../data/sampleData';
 import styles from './Home.module.css';
 
 const Home = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [allProducts, setAllProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -16,12 +19,21 @@ const Home = () => {
         return () => clearInterval(timer);
     }, []);
 
+    // Subscribe to real-time product updates from Firebase
+    useEffect(() => {
+        const unsubscribe = subscribeToProducts((data) => {
+            setAllProducts(data);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
+
     const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
 
-    const bestSellers = sampleProducts.filter(p => p.rating >= 4.5).slice(0, 4);
-    const newArrivals = sampleProducts.slice(0, 4);
-    const topDeals = sampleProducts.filter(p => p.category === 'spices').slice(0, 4);
+    const bestSellers = allProducts.filter(p => (p.rating || 0) >= 4.5).slice(0, 4);
+    const newArrivals = allProducts.slice(0, 4);
+    const topDeals = allProducts.filter(p => p.category === 'spices').slice(0, 4);
 
     return (
         <div className={styles.homePage}>
@@ -118,7 +130,12 @@ const Home = () => {
                                 className={styles.categoryCard}
                                 style={{ '--category-color': category.color }}
                             >
-                                <span className={styles.categoryIcon}>{category.icon}</span>
+                                <div className={styles.categoryImageWrapper}>
+                                    {category.image
+                                        ? <img src={category.image} alt={category.name} className={styles.categoryImg} />
+                                        : <span className={styles.categoryIcon}>{category.icon}</span>
+                                    }
+                                </div>
                                 <span className={styles.categoryName}>{category.name}</span>
                             </Link>
                         </motion.div>

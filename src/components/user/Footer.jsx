@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useSettings } from '../../contexts/SettingsContext';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
+    const { settings } = useSettings();
     return (
         <footer className="footer">
             <div className="footer-container">
@@ -10,7 +12,7 @@ const Footer = () => {
                     <div className="footer-brand">
                         <Link to="/" className="footer-logo">
                             <span className="logo-icon">🛒</span>
-                            <span className="logo-text">Velmurgan<span className="logo-accent">Store</span></span>
+                            <span className="logo-text">{settings.storeName}</span>
                         </Link>
                         <p className="footer-description">
                             At our grocery store, we are committed to bringing you the freshest and highest-quality products every day. From farm-fresh vegetables to everyday grocery essentials, we carefully select every item to meet your family’s needs. Our goal is to make grocery shopping simple, reliable, and affordable for everyone.
@@ -44,7 +46,7 @@ const Footer = () => {
                         <h4>Contact Us</h4>
                         <div className="contact-item">
                             <MapPin size={18} />
-                            <span>156, Nellai Velmurgan Store, Sullipalayam, Perundurai-638052</span>
+                            <span>{settings.storeName}, Sullipalayam, Perundurai-638052</span>
                         </div>
                         <div className="contact-item">
                             <Phone size={18} />
@@ -52,7 +54,7 @@ const Footer = () => {
                         </div>
                         <div className="contact-item">
                             <Mail size={18} />
-                            <span>velmurgam1623@gmail.com</span>
+                            <span>{settings.contactEmail}</span>
                         </div>
 
                         <div className="newsletter">
@@ -66,7 +68,7 @@ const Footer = () => {
                 </div>
 
                 <div className="footer-bottom">
-                    <p>&copy; 2026 velmurugan Store All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} {settings.storeName}. All rights reserved.</p>
                     <div className="footer-bottom-links">
                         <a href="#">Privacy Policy</a>
                         <a href="#">Terms of Service</a>

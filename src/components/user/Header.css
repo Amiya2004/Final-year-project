@@ -41,6 +41,13 @@
     color: #22c55e;
 }
 
+.header-logo-img {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
 .header-search {
     flex: 1;
     max-width: 500px;

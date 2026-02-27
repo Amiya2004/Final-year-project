@@ -1,23 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Package, Truck, CheckCircle, Clock, Search, Filter, Eye, MoreVertical } from 'lucide-react';
-import { sampleOrders } from '../../data/sampleData';
+import { Package, Truck, CheckCircle, Clock, Search, Filter, Eye, MoreVertical, Loader } from 'lucide-react';
+import { subscribeToOrders, updateOrderStatus as updateOrderStatusDB } from '../../services/database';
 import './Orders.css';
 
 const Orders = () => {
-    const [orders, setOrders] = useState(sampleOrders);
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const updateOrderStatus = (index, newStatus) => {
-        const updatedOrders = [...orders];
-        updatedOrders[index] = { ...updatedOrders[index], status: newStatus };
-        setOrders(updatedOrders);
+    useEffect(() => {
+        const unsubscribe = subscribeToOrders((data) => {
+            setOrders(data);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const handleUpdateStatus = async (order, newStatus) => {
+        try {
+            await updateOrderStatusDB(order.id, newStatus);
+        } catch (err) {
+            console.error('Error updating order status:', err);
+            alert('Failed to update order status.');
+        }
     };
 
     const filteredOrders = orders.filter(order => {
         const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-        const matchesSearch = order.customerName.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = (order.customerName || '').toLowerCase().includes(searchQuery.toLowerCase());
         return matchesStatus && matchesSearch;
     });
 
@@ -36,6 +48,15 @@ const Orders = () => {
             default: return Clock;
         }
     };
+
+    if (loading) {
+        return (
+            <div className="orders-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                <Loader size={32} className="spinning" />
+                <span style={{ marginLeft: '12px' }}>Loading orders...</span>
+            </div>
+        );
+    }
 
     return (
         <div className="orders-page">
@@ -171,31 +192,37 @@ const Orders = () => {
                             const StatusIcon = getStatusIcon(order.status);
                             return (
                                 <motion.tr
-                                    key={index}
+                                    key={order.id || index}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.05 }}
                                 >
                                     <td className="order-id">
-                                        #ORD{String(index + 1).padStart(4, '0')}
+                                        #{order.id ? order.id.slice(-6).toUpperCase() : `ORD${String(index + 1).padStart(4, '0')}`}
                                     </td>
                                     <td>
                                         <div className="customer-cell">
-                                            <span className="customer-name">{order.customerName}</span>
-                                            <span className="customer-address">{order.address}</span>
+                                            <span className="customer-name">{order.customerName || 'Customer'}</span>
+                                            <span className="customer-address">
+                                                {order.address
+                                                    ? (typeof order.address === 'string'
+                                                        ? order.address
+                                                        : `${order.address.addressLine1 || ''}${order.address.city ? ', ' + order.address.city : ''}${order.address.state ? ', ' + order.address.state : ''}`)
+                                                    : ''}
+                                            </span>
                                         </div>
                                     </td>
                                     <td>
                                         <div className="items-cell">
-                                            {order.items.slice(0, 2).map((item, i) => (
+                                            {(order.items || []).slice(0, 2).map((item, i) => (
                                                 <span key={i} className="item-tag">{item.name}</span>
                                             ))}
-                                            {order.items.length > 2 && (
+                                            {(order.items || []).length > 2 && (
                                                 <span className="more-items">+{order.items.length - 2} more</span>
                                             )}
                                         </div>
                                     </td>
-                                    <td className="total-cell">₹{order.total}</td>
+                                    <td className="total-cell">₹{order.total || 0}</td>
                                     <td>
                                         <span className={`status-badge ${order.status}`}>
                                             <StatusIcon size={14} />
@@ -203,12 +230,12 @@ const Orders = () => {
                                         </span>
                                     </td>
                                     <td className="date-cell">
-                                        {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN', {
                                             day: 'numeric',
                                             month: 'short',
                                             hour: '2-digit',
                                             minute: '2-digit'
-                                        })}
+                                        }) : 'N/A'}
                                     </td>
                                     <td>
                                         <div className="action-buttons">
@@ -218,7 +245,7 @@ const Orders = () => {
                                             {order.status === 'pending' && (
                                                 <button
                                                     className="action-btn pack"
-                                                    onClick={() => updateOrderStatus(index, 'packed')}
+                                                    onClick={() => handleUpdateStatus(order, 'packed')}
                                                 >
                                                     Pack
                                                 </button>
@@ -226,7 +253,7 @@ const Orders = () => {
                                             {order.status === 'packed' && (
                                                 <button
                                                     className="action-btn deliver"
-                                                    onClick={() => updateOrderStatus(index, 'delivered')}
+                                                    onClick={() => handleUpdateStatus(order, 'delivered')}
                                                 >
                                                     Deliver
                                                 </button>
