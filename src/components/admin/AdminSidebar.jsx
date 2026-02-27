@@ -5,7 +5,6 @@ import {
     Package,
     ShoppingCart,
     BarChart3,
-    Tags,
     AlertTriangle,
     Settings,
     LogOut,
@@ -30,7 +29,7 @@ const AdminSidebar = () => {
         { path: '/admin/products', icon: Package, label: 'Products' },
         { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
         { path: '/admin/stock', icon: BarChart3, label: 'Stock Management' },
-        { path: '/admin/brands', icon: Tags, label: 'Brand Analysis' },
+
         { path: '/admin/expiry', icon: AlertTriangle, label: 'Expiry Alerts' },
         { path: '/admin/settings', icon: Settings, label: 'Settings' }
     ];

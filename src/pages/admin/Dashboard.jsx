@@ -6,7 +6,6 @@ import {
     TrendingUp,
     TrendingDown,
     AlertTriangle,
-    Tags,
     ShoppingCart,
     DollarSign,
     ArrowUp,
@@ -27,7 +26,7 @@ import {
     Cell,
     Legend
 } from 'recharts';
-import { sampleProducts, monthlySalesData, brandSalesData, categorySalesData, sampleOrders } from '../../data/sampleData';
+import { sampleProducts, monthlySalesData, categorySalesData, sampleOrders } from '../../data/sampleData';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -42,7 +41,7 @@ const Dashboard = () => {
         const daysUntilExpiry = Math.ceil((new Date(p.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
         return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
     }).length;
-    const uniqueBrands = [...new Set(products.map(p => p.brand))].length;
+
 
     const pendingOrders = orders.filter(o => o.status === 'pending').length;
     const todaySales = orders.reduce((sum, o) => sum + o.total, 0);
@@ -53,7 +52,7 @@ const Dashboard = () => {
         { label: 'Low Stock Items', value: lowStockItems, icon: TrendingDown, color: '#ef4444', change: '-3', up: false },
         { label: 'Overstock Items', value: overstockItems, icon: TrendingUp, color: '#f59e0b', change: '+2', up: true },
         { label: 'Expiry Alerts', value: expiryAlertItems, icon: AlertTriangle, color: '#f97316', change: '5 items', up: false },
-        { label: 'Total Brands', value: uniqueBrands, icon: Tags, color: '#8b5cf6', change: '+1', up: true },
+
         { label: 'Pending Orders', value: pendingOrders, icon: ShoppingCart, color: '#06b6d4', change: '4 new', up: true },
         { label: "Today's Sales", value: `₹${todaySales.toLocaleString()}`, icon: DollarSign, color: '#10b981', change: '+18%', up: true }
     ];
@@ -136,36 +135,6 @@ const Dashboard = () => {
                     </ResponsiveContainer>
                 </motion.div>
 
-                {/* Brand-wise Sales */}
-                <motion.div
-                    className="chart-card"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                >
-                    <h3>Brand-wise Sales</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={brandSalesData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="brand" stroke="#64748b" />
-                            <YAxis stroke="#64748b" tickFormatter={(value) => `₹${value / 1000}k`} />
-                            <Tooltip
-                                contentStyle={{
-                                    background: '#1e293b',
-                                    border: 'none',
-                                    borderRadius: '12px',
-                                    color: 'white'
-                                }}
-                                formatter={(value) => [`₹${value.toLocaleString()}`, 'Sales']}
-                            />
-                            <Bar
-                                dataKey="sales"
-                                fill="#8b5cf6"
-                                radius={[8, 8, 0, 0]}
-                            />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </motion.div>
             </div>
 
             {/* Category Demand & Recent Orders */}

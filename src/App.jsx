@@ -5,6 +5,7 @@ import { AnimatePresence } from 'framer-motion';
 // Contexts
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { WishlistProvider } from './contexts/WishlistContext';
 import { LoadingProvider, useLoading } from './contexts/LoadingContext';
 
 // Components
@@ -18,6 +19,9 @@ import Cart from './pages/user/Cart';
 import Checkout from './pages/user/Checkout';
 import OrderSuccess from './pages/user/OrderSuccess';
 import MyOrders from './pages/user/MyOrders';
+import About from './pages/user/About';
+import Contact from './pages/user/Contact';
+import Wishlist from './pages/user/Wishlist';
 import Login from './pages/user/Login';
 
 // Admin Pages
@@ -25,7 +29,7 @@ import AdminLayout from './pages/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import Products from './pages/admin/Products';
 import StockManagement from './pages/admin/StockManagement';
-import BrandAnalysis from './pages/admin/BrandAnalysis';
+
 import ExpiryAlerts from './pages/admin/ExpiryAlerts';
 import AdminSetup from './pages/admin/AdminSetup';
 import Orders from './pages/admin/Orders';
@@ -72,10 +76,10 @@ const AppContent = () => {
           <Route index element={<Home />} />
           <Route path="shop" element={<Shop />} />
           <Route path="cart" element={<Cart />} />
-          <Route path="about" element={<div className="coming-soon"><h1>About Us</h1><p>Coming Soon</p></div>} />
-          <Route path="contact" element={<div className="coming-soon"><h1>Contact Us</h1><p>Coming Soon</p></div>} />
+          <Route path="about" element={<About />} />
+          <Route path="contact" element={<Contact />} />
           <Route path="orders" element={<MyOrders />} />
-          <Route path="wishlist" element={<div className="coming-soon"><h1>Wishlist</h1><p>Coming Soon</p></div>} />
+          <Route path="wishlist" element={<Wishlist />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="order-success" element={<OrderSuccess />} />
         </Route>
@@ -97,7 +101,7 @@ const AppContent = () => {
           <Route path="products" element={<Products />} />
           <Route path="orders" element={<Orders />} />
           <Route path="stock" element={<StockManagement />} />
-          <Route path="brands" element={<BrandAnalysis />} />
+
           <Route path="expiry" element={<ExpiryAlerts />} />
           <Route path="settings" element={<div className="coming-soon admin-coming"><h1>Settings</h1><p>Coming Soon</p></div>} />
         </Route>
@@ -113,11 +117,13 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <CartProvider>
-          <LoadingProvider>
-            <AppContent />
-          </LoadingProvider>
-        </CartProvider>
+        <WishlistProvider>
+          <CartProvider>
+            <LoadingProvider>
+              <AppContent />
+            </LoadingProvider>
+          </CartProvider>
+        </WishlistProvider>
       </AuthProvider>
     </BrowserRouter>
   );

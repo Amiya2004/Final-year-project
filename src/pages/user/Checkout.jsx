@@ -177,14 +177,14 @@ const Checkout = () => {
         return (
             <div className="checkout-page">
                 <motion.div
-                    className="empty-checkout"
+                    className="checkout-empty-state"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                 >
                     <ShoppingBag size={80} strokeWidth={1} />
                     <h2>Your cart is empty</h2>
                     <p>Add some items before checking out.</p>
-                    <button onClick={() => navigate('/shop')} className="back-to-shop-btn">
+                    <button onClick={() => navigate('/shop')} className="checkout-back-to-shop">
                         <ArrowLeft size={20} />
                         Go to Shop
                     </button>
@@ -203,18 +203,18 @@ const Checkout = () => {
 
             {/* Progress Steps */}
             <div className="checkout-progress">
-                <div className={`progress-step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
-                    <div className="step-circle">
+                <div className={`checkout-progress-step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
+                    <div className="checkout-step-circle">
                         {step > 1 ? <CheckCircle size={20} /> : <span>1</span>}
                     </div>
-                    <span className="step-label">Delivery Address</span>
+                    <span className="checkout-step-label">Delivery Address</span>
                 </div>
-                <div className="progress-line" />
-                <div className={`progress-step ${step >= 2 ? 'active' : ''}`}>
-                    <div className="step-circle">
+                <div className="checkout-progress-line" />
+                <div className={`checkout-progress-step ${step >= 2 ? 'active' : ''}`}>
+                    <div className="checkout-step-circle">
                         <span>2</span>
                     </div>
-                    <span className="step-label">Payment</span>
+                    <span className="checkout-step-label">Payment</span>
                 </div>
             </div>
 
@@ -230,13 +230,13 @@ const Checkout = () => {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -30 }}
                             >
-                                <div className="card-header">
+                                <div className="checkout-card-header">
                                     <MapPin size={22} />
                                     <h2>Delivery Address</h2>
                                 </div>
 
-                                <div className="form-grid">
-                                    <div className="form-group full-width">
+                                <div className="checkout-form-grid">
+                                    <div className="checkout-form-group full-width">
                                         <label>
                                             <User size={16} />
                                             Full Name *
@@ -250,7 +250,7 @@ const Checkout = () => {
                                         />
                                     </div>
 
-                                    <div className="form-group">
+                                    <div className="checkout-form-group">
                                         <label>
                                             <Phone size={16} />
                                             Phone Number *
@@ -265,7 +265,7 @@ const Checkout = () => {
                                         />
                                     </div>
 
-                                    <div className="form-group">
+                                    <div className="checkout-form-group">
                                         <label>
                                             <Mail size={16} />
                                             Email
@@ -279,7 +279,7 @@ const Checkout = () => {
                                         />
                                     </div>
 
-                                    <div className="form-group full-width">
+                                    <div className="checkout-form-group full-width">
                                         <label>
                                             <MapPin size={16} />
                                             Address Line 1 *
@@ -293,7 +293,7 @@ const Checkout = () => {
                                         />
                                     </div>
 
-                                    <div className="form-group full-width">
+                                    <div className="checkout-form-group full-width">
                                         <label>Address Line 2</label>
                                         <input
                                             type="text"
@@ -304,7 +304,7 @@ const Checkout = () => {
                                         />
                                     </div>
 
-                                    <div className="form-group">
+                                    <div className="checkout-form-group">
                                         <label>City *</label>
                                         <input
                                             type="text"
@@ -315,7 +315,7 @@ const Checkout = () => {
                                         />
                                     </div>
 
-                                    <div className="form-group">
+                                    <div className="checkout-form-group">
                                         <label>State</label>
                                         <input
                                             type="text"
@@ -326,7 +326,7 @@ const Checkout = () => {
                                         />
                                     </div>
 
-                                    <div className="form-group">
+                                    <div className="checkout-form-group">
                                         <label>Pincode *</label>
                                         <input
                                             type="text"
@@ -339,7 +339,7 @@ const Checkout = () => {
                                     </div>
                                 </div>
 
-                                <button className="proceed-btn" onClick={handleProceedToPayment}>
+                                <button className="checkout-proceed-btn" onClick={handleProceedToPayment}>
                                     Proceed to Payment
                                     <ChevronRight size={20} />
                                 </button>
@@ -354,44 +354,44 @@ const Checkout = () => {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: 30 }}
                             >
-                                <div className="card-header">
+                                <div className="checkout-card-header">
                                     <CreditCard size={22} />
                                     <h2>Payment</h2>
                                 </div>
 
                                 {/* Delivery Address Summary */}
-                                <div className="address-summary">
-                                    <div className="summary-label">
+                                <div className="checkout-address-summary-card">
+                                    <div className="checkout-address-summary-label">
                                         <MapPin size={16} />
                                         <span>Delivering to</span>
-                                        <button className="change-btn" onClick={() => setStep(1)}>Change</button>
+                                        <button className="checkout-change-btn" onClick={() => setStep(1)}>Change</button>
                                     </div>
-                                    <div className="summary-content">
+                                    <div className="checkout-address-summary-content">
                                         <strong>{address.fullName}</strong>
                                         <p>{address.addressLine1}{address.addressLine2 ? `, ${address.addressLine2}` : ''}</p>
                                         <p>{address.city}, {address.state} - {address.pincode}</p>
-                                        <p className="summary-phone">📞 {address.phone}</p>
+                                        <p className="checkout-summary-phone">📞 {address.phone}</p>
                                     </div>
                                 </div>
 
                                 {/* Payment Methods */}
-                                <div className="payment-options">
+                                <div className="checkout-payment-options">
                                     <h3>Select Payment Method</h3>
 
-                                    <div className="payment-option selected">
-                                        <div className="option-radio">
-                                            <div className="radio-dot" />
+                                    <div className="checkout-payment-option selected">
+                                        <div className="checkout-option-radio">
+                                            <div className="checkout-radio-dot" />
                                         </div>
-                                        <div className="option-info">
-                                            <div className="option-title">
+                                        <div className="checkout-option-info">
+                                            <div className="checkout-option-title">
                                                 <CreditCard size={18} />
                                                 <span>Pay with Razorpay</span>
                                             </div>
-                                            <p className="option-desc">
+                                            <p className="checkout-option-desc">
                                                 Credit/Debit Card, UPI, Net Banking, Wallets
                                             </p>
                                         </div>
-                                        <div className="option-icons">
+                                        <div className="checkout-option-icons">
                                             <span>💳</span>
                                             <span>📱</span>
                                             <span>🏦</span>
@@ -400,7 +400,7 @@ const Checkout = () => {
                                 </div>
 
                                 {/* Security Info */}
-                                <div className="security-info">
+                                <div className="checkout-security-info">
                                     <Shield size={18} />
                                     <div>
                                         <strong>100% Secure Payment</strong>
@@ -409,13 +409,13 @@ const Checkout = () => {
                                 </div>
 
                                 <button
-                                    className={`pay-now-btn ${processing ? 'processing' : ''}`}
+                                    className={`checkout-pay-now-btn ${processing ? 'processing' : ''}`}
                                     onClick={handlePayment}
                                     disabled={processing}
                                 >
                                     {processing ? (
                                         <>
-                                            <div className="btn-spinner" />
+                                            <div className="checkout-btn-spinner" />
                                             Processing...
                                         </>
                                     ) : (
@@ -426,7 +426,7 @@ const Checkout = () => {
                                     )}
                                 </button>
 
-                                <button className="back-btn" onClick={() => setStep(1)}>
+                                <button className="checkout-back-btn" onClick={() => setStep(1)}>
                                     <ArrowLeft size={18} />
                                     Back to Address
                                 </button>
@@ -436,18 +436,18 @@ const Checkout = () => {
                 </div>
 
                 {/* Right - Order Summary */}
-                <div className="checkout-summary">
-                    <div className="summary-card">
+                <div className="checkout-summary-area">
+                    <div className="checkout-order-summary">
                         <h3>
                             <ShoppingBag size={20} />
                             Order Summary
                         </h3>
 
-                        <div className="summary-items">
+                        <div className="checkout-summary-items">
                             {cart.map((item, index) => (
-                                <div key={item.id || `cart-item-${index}`} className="summary-item">
+                                <div key={item.id || `cart-item-${index}`} className="checkout-summary-item">
                                     <img src={item.image} alt={item.name} />
-                                    <div className="summary-item-info">
+                                    <div className="checkout-summary-item-info">
                                         <span className="item-name">{item.name}</span>
                                         <span className="item-qty">Qty: {item.quantity}</span>
                                     </div>
@@ -456,12 +456,12 @@ const Checkout = () => {
                             ))}
                         </div>
 
-                        <div className="summary-breakdown">
-                            <div className="breakdown-row">
+                        <div className="checkout-summary-breakdown">
+                            <div className="checkout-breakdown-row">
                                 <span>Subtotal ({cart.length} items)</span>
                                 <span>₹{cartTotal.toFixed(2)}</span>
                             </div>
-                            <div className="breakdown-row">
+                            <div className="checkout-breakdown-row">
                                 <span>
                                     <Truck size={16} /> Delivery
                                 </span>
@@ -471,12 +471,12 @@ const Checkout = () => {
                             </div>
                         </div>
 
-                        <div className="summary-grand-total">
+                        <div className="checkout-grand-total">
                             <span>Total</span>
                             <span>₹{finalTotal.toFixed(2)}</span>
                         </div>
 
-                        <div className="delivery-estimate">
+                        <div className="checkout-delivery-estimate">
                             <Clock size={16} />
                             <span>Estimated delivery: <strong>2-3 days</strong></span>
                         </div>

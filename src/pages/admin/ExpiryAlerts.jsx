@@ -188,7 +188,7 @@ const ProductExpiryCard = ({ product, index, getSuggestion }) => {
             <img src={product.image} alt={product.name} className="product-image" />
             <div className="product-details">
                 <h4>{product.name}</h4>
-                <p className="product-brand">{product.brand} • {product.category}</p>
+                <p className="product-category">{product.category}</p>
                 <div className="expiry-info">
                     <span
                         className="expiry-badge"

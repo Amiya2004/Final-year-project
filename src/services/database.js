@@ -74,23 +74,7 @@ export const updateOrderStatus = async (orderId, status) => {
     await update(orderRef, { status, updatedAt: new Date().toISOString() });
 };
 
-// Brands
-export const getBrands = async () => {
-    const brandsRef = ref(database, 'brands');
-    const snapshot = await get(brandsRef);
-    if (snapshot.exists()) {
-        const data = snapshot.val();
-        return Object.keys(data).map(key => ({ id: key, ...data[key] }));
-    }
-    return [];
-};
 
-export const addBrand = async (brand) => {
-    const brandsRef = ref(database, 'brands');
-    const newBrandRef = push(brandsRef);
-    await set(newBrandRef, brand);
-    return newBrandRef.key;
-};
 
 // Categories
 export const getCategories = async () => {

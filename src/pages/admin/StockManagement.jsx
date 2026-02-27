@@ -21,8 +21,7 @@ const StockManagement = () => {
     };
 
     const filteredProducts = products.filter(product => {
-        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.brand.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
         const stockStatus = getStockStatus(product.stock, product.expiryDate).status;
         const matchesStock = stockFilter === 'all' || stockStatus === stockFilter;
@@ -132,7 +131,7 @@ const StockManagement = () => {
                     <thead>
                         <tr>
                             <th>Product</th>
-                            <th>Brand</th>
+
                             <th>Category</th>
                             <th>Stock</th>
                             <th>Price</th>
@@ -157,7 +156,7 @@ const StockManagement = () => {
                                             <span>{product.name}</span>
                                         </div>
                                     </td>
-                                    <td className="brand-cell">{product.brand}</td>
+
                                     <td className="category-cell">{product.category}</td>
                                     <td className="stock-cell">
                                         <span className={`stock-value ${stockInfo.status}`}>

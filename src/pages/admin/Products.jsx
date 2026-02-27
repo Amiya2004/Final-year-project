@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Search, Edit2, Trash2, Package } from 'lucide-react';
-import { sampleProducts, sampleCategories, tamilNaduBrands } from '../../data/sampleData';
+import { sampleProducts, sampleCategories } from '../../data/sampleData';
 import './Products.css';
 
 const Products = () => {
@@ -11,8 +11,7 @@ const Products = () => {
     const [editingProduct, setEditingProduct] = useState(null);
 
     const filteredProducts = products.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchQuery.toLowerCase())
+        product.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const handleDelete = (index) => {
@@ -45,10 +44,7 @@ const Products = () => {
                     <span className="stat-value">{sampleCategories.length}</span>
                     <span className="stat-label">Categories</span>
                 </div>
-                <div className="stat-item">
-                    <span className="stat-value">{tamilNaduBrands.length}</span>
-                    <span className="stat-label">Brands</span>
-                </div>
+
             </div>
 
             {/* Search */}
@@ -56,7 +52,7 @@ const Products = () => {
                 <Search size={20} />
                 <input
                     type="text"
-                    placeholder="Search products by name or brand..."
+                    placeholder="Search products by name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -76,7 +72,7 @@ const Products = () => {
                         <div className="product-info">
                             <span className="product-category">{product.category}</span>
                             <h3>{product.name}</h3>
-                            <p className="product-brand">{product.brand}</p>
+
                             <div className="product-meta">
                                 <span className="product-price">₹{product.price}</span>
                                 <span className="product-stock">Stock: {product.stock}</span>
@@ -122,18 +118,6 @@ const Products = () => {
                                         defaultValue={editingProduct?.name || ''}
                                     />
                                 </div>
-                                <div className="form-group">
-                                    <label>Brand</label>
-                                    <select defaultValue={editingProduct?.brand || ''}>
-                                        <option value="">Select Brand</option>
-                                        {tamilNaduBrands.map(brand => (
-                                            <option key={brand.id} value={brand.id}>{brand.name}</option>
-                                        ))}
-                                        <option value="local">Local</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="form-row">
                                 <div className="form-group">
                                     <label>Category</label>
                                     <select defaultValue={editingProduct?.category || ''}>

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, User, Search, Menu, X, LogOut, Package, Heart } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 import './Header.css';
 
 const Header = () => {
@@ -12,6 +13,7 @@ const Header = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const { currentUser, logout, isAdmin } = useAuth();
     const { cartCount } = useCart();
+    const { wishlistCount } = useWishlist();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -65,6 +67,8 @@ const Header = () => {
                 </nav>
 
                 <div className="header-actions">
+
+
                     <Link to="/cart" className="action-btn cart-btn">
                         <ShoppingCart size={22} />
                         {cartCount > 0 && (
@@ -72,7 +76,7 @@ const Header = () => {
                                 className="cart-badge"
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                key={cartCount}
+                                key={`cart-${cartCount}`}
                             >
                                 {cartCount}
                             </motion.span>
@@ -114,6 +118,7 @@ const Header = () => {
                                             <Heart size={18} />
                                             Wishlist
                                         </Link>
+
                                         <button className="dropdown-item logout" onClick={handleLogout}>
                                             <LogOut size={18} />
                                             Logout

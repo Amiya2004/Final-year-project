@@ -97,13 +97,13 @@
 }
 
 /* Products Grid */
-.products-grid {
+.products-page .products-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
 }
 
-.product-card {
+.products-page .product-card {
     background: white;
     border-radius: 16px;
     overflow: hidden;
@@ -112,7 +112,7 @@
     position: relative;
 }
 
-.product-card:hover {
+.products-page .product-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
@@ -180,7 +180,7 @@
     transition: opacity 0.3s ease;
 }
 
-.product-card:hover .product-actions {
+.products-page .product-card:hover .product-actions {
     opacity: 1;
 }
 

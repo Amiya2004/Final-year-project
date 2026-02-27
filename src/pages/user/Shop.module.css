@@ -1,27 +1,27 @@
-.shop-page {
+.shopPage {
     min-height: 100vh;
     background: #f8fafc;
 }
 
-.shop-header {
+.shopHeader {
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
     padding: 3rem 2rem;
     text-align: center;
     color: white;
 }
 
-.shop-header h1 {
+.shopHeader h1 {
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
 }
 
-.shop-header p {
+.shopHeader p {
     font-size: 1.1rem;
     opacity: 0.9;
 }
 
-.shop-container {
+.shopContainer {
     max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
@@ -31,7 +31,7 @@
 }
 
 /* Sidebar */
-.shop-sidebar {
+.shopSidebar {
     background: white;
     border-radius: 20px;
     padding: 1.5rem;
@@ -41,15 +41,15 @@
     top: 100px;
 }
 
-.sidebar-section {
+.sidebarSection {
     margin-bottom: 2rem;
 }
 
-.sidebar-section:last-child {
+.sidebarSection:last-child {
     margin-bottom: 0;
 }
 
-.sidebar-section h3 {
+.sidebarSection h3 {
     font-size: 1rem;
     font-weight: 600;
     color: #1e293b;
@@ -58,7 +58,7 @@
     border-bottom: 2px solid #f1f5f9;
 }
 
-.filter-list {
+.filterList {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -67,7 +67,7 @@
     gap: 0.25rem;
 }
 
-.filter-list button {
+.filterList button {
     width: 100%;
     padding: 0.625rem 1rem;
     background: transparent;
@@ -83,24 +83,24 @@
     gap: 0.5rem;
 }
 
-.filter-list button:hover {
+.filterList button:hover {
     background: #f1f5f9;
     color: #1e293b;
 }
 
-.filter-list button.active {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    color: white;
+.filterListActive {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    color: white !important;
 }
 
 /* Content */
-.shop-content {
+.shopContent {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
 }
 
-.shop-toolbar {
+.shopToolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -111,7 +111,7 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
-.search-box {
+.searchBox {
     flex: 1;
     max-width: 400px;
     display: flex;
@@ -123,7 +123,7 @@
     border-radius: 12px;
 }
 
-.search-box input {
+.searchBox input {
     flex: 1;
     border: none;
     background: transparent;
@@ -131,21 +131,21 @@
     color: #1e293b;
 }
 
-.search-box input:focus {
+.searchBox input:focus {
     outline: none;
 }
 
-.search-box svg {
+.searchBox svg {
     color: #94a3b8;
 }
 
-.toolbar-actions {
+.toolbarActions {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.sort-select {
+.sortSelect {
     padding: 0.625rem 1rem;
     background: #f8fafc;
     border: 2px solid #e2e8f0;
@@ -155,12 +155,12 @@
     cursor: pointer;
 }
 
-.sort-select:focus {
+.sortSelect:focus {
     outline: none;
     border-color: #22c55e;
 }
 
-.filter-toggle {
+.filterToggle {
     display: none;
     align-items: center;
     gap: 0.5rem;
@@ -173,47 +173,47 @@
     cursor: pointer;
 }
 
-.results-count {
+.resultsCount {
     color: #64748b;
     font-size: 0.9rem;
 }
 
-.products-grid {
+.productsGrid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
 }
 
-.no-results {
+.noResults {
     text-align: center;
     padding: 4rem 2rem;
     background: white;
     border-radius: 20px;
 }
 
-.no-results-icon {
+.noResultsIcon {
     font-size: 4rem;
     display: block;
     margin-bottom: 1rem;
 }
 
-.no-results h3 {
+.noResults h3 {
     font-size: 1.5rem;
     color: #1e293b;
     margin-bottom: 0.5rem;
 }
 
-.no-results p {
+.noResults p {
     color: #64748b;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
-    .shop-container {
+    .shopContainer {
         grid-template-columns: 1fr;
     }
 
-    .shop-sidebar {
+    .shopSidebar {
         position: fixed;
         top: 0;
         left: 0;
@@ -226,38 +226,38 @@
         transition: transform 0.3s ease;
     }
 
-    .shop-sidebar.open {
+    .sidebarOpen {
         transform: translateX(0);
     }
 
-    .filter-toggle {
+    .filterToggle {
         display: flex;
     }
 
-    .products-grid {
+    .productsGrid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 640px) {
-    .shop-header h1 {
+    .shopHeader h1 {
         font-size: 1.75rem;
     }
 
-    .shop-container {
+    .shopContainer {
         padding: 1rem;
     }
 
-    .shop-toolbar {
+    .shopToolbar {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .search-box {
+    .searchBox {
         max-width: 100%;
     }
 
-    .products-grid {
+    .productsGrid {
         grid-template-columns: 1fr;
     }
 }

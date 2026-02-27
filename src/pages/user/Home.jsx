@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ArrowRight, Star, TrendingUp, Sparkles, Tag, Quote } from 'lucide-react';
 import ProductCard from '../../components/user/ProductCard';
 import { sampleProducts, sampleCategories, heroSlides, customerReviews } from '../../data/sampleData';
-import './Home.css';
+import styles from './Home.module.css';
 
 const Home = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -24,22 +24,22 @@ const Home = () => {
     const topDeals = sampleProducts.filter(p => p.category === 'spices').slice(0, 4);
 
     return (
-        <div className="home-page">
+        <div className={styles.homePage}>
             {/* Hero Section */}
-            <section className="hero-section">
+            <section className={styles.heroSection}>
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={currentSlide}
-                        className="hero-slide"
+                        className={styles.heroSlide}
                         style={{ background: heroSlides[currentSlide].gradient }}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <div className="hero-content">
+                        <div className={styles.heroContent}>
                             <motion.span
-                                className="hero-subtitle"
+                                className={styles.heroSubtitle}
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.2 }}
@@ -47,7 +47,7 @@ const Home = () => {
                                 {heroSlides[currentSlide].subtitle}
                             </motion.span>
                             <motion.h1
-                                className="hero-title"
+                                className={styles.heroTitle}
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.3 }}
@@ -55,7 +55,7 @@ const Home = () => {
                                 {heroSlides[currentSlide].title}
                             </motion.h1>
                             <motion.p
-                                className="hero-description"
+                                className={styles.heroDescription}
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.4 }}
@@ -67,30 +67,30 @@ const Home = () => {
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.5 }}
                             >
-                                <Link to="/shop" className="hero-cta">
+                                <Link to="/shop" className={styles.heroCta}>
                                     {heroSlides[currentSlide].cta}
                                     <ArrowRight size={20} />
                                 </Link>
                             </motion.div>
                         </div>
-                        <div className="hero-decoration">
-                            <span className="deco-icon">🛒</span>
+                        <div className={styles.heroDecoration}>
+                            <span className={styles.decoIcon}>🛒</span>
                         </div>
                     </motion.div>
                 </AnimatePresence>
 
-                <button className="hero-nav prev" onClick={prevSlide}>
+                <button className={`${styles.heroNav} ${styles.prev}`} onClick={prevSlide}>
                     <ChevronLeft size={24} />
                 </button>
-                <button className="hero-nav next" onClick={nextSlide}>
+                <button className={`${styles.heroNav} ${styles.next}`} onClick={nextSlide}>
                     <ChevronRight size={24} />
                 </button>
 
-                <div className="hero-dots">
+                <div className={styles.heroDots}>
                     {heroSlides.map((_, index) => (
                         <button
                             key={index}
-                            className={`dot ${index === currentSlide ? 'active' : ''}`}
+                            className={`${styles.dot} ${index === currentSlide ? styles.dotActive : ''}`}
                             onClick={() => setCurrentSlide(index)}
                         />
                     ))}
@@ -98,14 +98,14 @@ const Home = () => {
             </section>
 
             {/* Categories Section */}
-            <section className="section categories-section">
-                <div className="section-header">
-                    <h2 className="section-title">Shop by Category</h2>
-                    <Link to="/shop" className="section-link">
+            <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <h2 className={styles.sectionTitle}>Shop by Category</h2>
+                    <Link to="/shop" className={styles.sectionLink}>
                         View All <ArrowRight size={18} />
                     </Link>
                 </div>
-                <div className="categories-grid">
+                <div className={styles.categoriesGrid}>
                     {sampleCategories.map((category, index) => (
                         <motion.div
                             key={category.id}
@@ -115,11 +115,11 @@ const Home = () => {
                         >
                             <Link
                                 to={`/shop?category=${category.id}`}
-                                className="category-card"
+                                className={styles.categoryCard}
                                 style={{ '--category-color': category.color }}
                             >
-                                <span className="category-icon">{category.icon}</span>
-                                <span className="category-name">{category.name}</span>
+                                <span className={styles.categoryIcon}>{category.icon}</span>
+                                <span className={styles.categoryName}>{category.name}</span>
                             </Link>
                         </motion.div>
                     ))}
@@ -128,22 +128,22 @@ const Home = () => {
 
 
             {/* Customer Reviews Section */}
-            <section className="section reviews-section">
-                <div className="section-header center">
-                    <h2 className="section-title">What Our Customers Say</h2>
+            <section className={`${styles.section} ${styles.reviewsSection}`}>
+                <div className={`${styles.sectionHeader} ${styles.sectionHeaderCenter}`}>
+                    <h2 className={styles.sectionTitle}>What Our Customers Say</h2>
                 </div>
-                <div className="reviews-grid">
+                <div className={styles.reviewsGrid}>
                     {customerReviews.map((review, index) => (
                         <motion.div
                             key={review.id}
-                            className="review-card"
+                            className={styles.reviewCard}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
                         >
-                            <Quote className="review-quote" size={32} />
-                            <p className="review-comment">{review.comment}</p>
-                            <div className="review-rating">
+                            <Quote className={styles.reviewQuote} size={32} />
+                            <p className={styles.reviewComment}>{review.comment}</p>
+                            <div className={styles.reviewRating}>
                                 {[...Array(5)].map((_, i) => (
                                     <Star
                                         key={i}
@@ -153,9 +153,9 @@ const Home = () => {
                                     />
                                 ))}
                             </div>
-                            <div className="review-author">
-                                <span className="author-avatar">{review.avatar}</span>
-                                <span className="author-name">{review.name}</span>
+                            <div className={styles.reviewAuthor}>
+                                <span className={styles.authorAvatar}>{review.avatar}</span>
+                                <span className={styles.authorName}>{review.name}</span>
                             </div>
                         </motion.div>
                     ))}
@@ -163,11 +163,11 @@ const Home = () => {
             </section>
 
             {/* CTA Banner */}
-            <section className="cta-banner">
-                <div className="cta-content">
+            <section className={styles.ctaBanner}>
+                <div className={styles.ctaContent}>
                     <h2>Get Fresh Groceries Delivered!</h2>
                     <p>Free delivery on orders above ₹500. Shop now and save more!</p>
-                    <Link to="/shop" className="cta-button">
+                    <Link to="/shop" className={styles.ctaButton}>
                         Start Shopping
                         <ArrowRight size={20} />
                     </Link>
