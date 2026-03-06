@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useReviews } from '../../contexts/ReviewsContext';
 import {
     Typography,
     Row,
@@ -8,14 +9,14 @@ import {
     Form,
     Input,
     Button,
+    Rate,
     Divider
 } from 'antd';
 import {
     MailOutlined,
     PhoneOutlined,
     EnvironmentOutlined,
-    ClockCircleOutlined,
-    SendOutlined
+    ClockCircleOutlined
 } from '@ant-design/icons';
 import './Contact.css';
 
@@ -24,34 +25,34 @@ const { TextArea } = Input;
 
 const Contact = () => {
     const { settings } = useSettings();
-    const [form] = Form.useForm();
+    const { addReview } = useReviews();
+    const [reviewForm] = Form.useForm();
 
-    const onFinish = (values) => {
-        console.log('Success:', values);
-        // Here you would typically send the form data to a backend
-        alert('Thank you for reaching out! We will get back to you soon.');
-        form.resetFields();
+    const onSubmitReview = async (values) => {
+        try {
+            await addReview({
+                name: values.name,
+                comment: values.feedback,
+                rating: values.rating
+            });
+            reviewForm.resetFields();
+        } catch (error) {
+            console.error('Failed to store feedback:', error);
+        }
     };
 
     return (
         <div className="contact-page">
-            {/* Header Section */}
-            <motion.section
-                className="contact-hero"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-            >
+            <section className="contact-hero">
                 <Title level={1} className="contact-title">Contact Us</Title>
                 <Paragraph className="contact-subtitle">
-                    We are here to assist you with your grocery needs. Reach out to us for any queries or feedback.
+                    We'd love to hear from you! Share your feedback, experience, or reach out for any queries about products, orders, or delivery.
                 </Paragraph>
-            </motion.section>
+            </section>
 
             <section className="contact-container">
-                <Row gutter={[40, 40]}>
-                    {/* Left Column - Store Information */}
-                    <Col xs={24} lg={10}>
+                <Row gutter={[40, 40]} justify="center" className="contact-info-row">
+                    <Col xs={24} md={20} lg={12} xl={10}>
                         <motion.div
                             initial={{ opacity: 0, x: -30 }}
                             whileInView={{ opacity: 1, x: 0 }}
@@ -69,8 +70,8 @@ const Contact = () => {
                                     <div className="info-text">
                                         <Text strong>Address</Text>
                                         <Paragraph>
-                                            {settings.storeName}<br />
-                                            Sullipalayam, Perundurai – 638052<br />
+                                            156, Nellai Velmurgan Store<br />
+                                            Sullipalayam, Perundurai - 638052<br />
                                             Tamil Nadu, India
                                         </Paragraph>
                                     </div>
@@ -103,8 +104,8 @@ const Contact = () => {
                                     <div className="info-text">
                                         <Text strong>Working Hours</Text>
                                         <Paragraph>
-                                            6:00 AM – 10:30 PM<br />
-                                            (Monday – Sunday)
+                                            6:00 AM - 10:30 PM<br />
+                                            (Monday - Sunday)
                                         </Paragraph>
                                     </div>
                                 </div>
@@ -112,21 +113,24 @@ const Contact = () => {
                         </motion.div>
                     </Col>
 
-                    {/* Right Column - Contact Form */}
-                    <Col xs={24} lg={14}>
+                    <Col xs={24} md={20} lg={12} xl={10}>
                         <motion.div
-                            initial={{ opacity: 0, x: 30 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.6 }}
                         >
-                            <Card className="form-card" bordered={false}>
-                                <Title level={3} className="info-card-title">Send us a Message</Title>
+                            <Card className="review-card" bordered={false}>
+                                <Title level={3} className="info-card-title">What Our Customers Say</Title>
+                                <Paragraph className="review-subtitle">
+                                    Share your experience - your feedback helps us improve.
+                                </Paragraph>
                                 <Divider />
+
                                 <Form
-                                    form={form}
+                                    form={reviewForm}
                                     layout="vertical"
-                                    onFinish={onFinish}
+                                    onFinish={onSubmitReview}
                                     autoComplete="off"
                                     size="large"
                                 >
@@ -135,50 +139,28 @@ const Contact = () => {
                                         label="Name"
                                         rules={[{ required: true, message: 'Please enter your name' }]}
                                     >
-                                        <Input placeholder="Enter your full name" />
+                                        <Input placeholder="Enter your name" />
                                     </Form.Item>
 
-                                    <Row gutter={16}>
-                                        <Col xs={24} md={12}>
-                                            <Form.Item
-                                                name="email"
-                                                label="Email"
-                                                rules={[
-                                                    { required: true, message: 'Please enter your email' },
-                                                    { type: 'email', message: 'Please enter a valid email' }
-                                                ]}
-                                            >
-                                                <Input placeholder="Enter your email" />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col xs={24} md={12}>
-                                            <Form.Item
-                                                name="phone"
-                                                label="Phone Number"
-                                                rules={[{ required: true, message: 'Please enter your phone number' }]}
-                                            >
-                                                <Input placeholder="Enter your phone number" />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
+                                    <Form.Item
+                                        name="rating"
+                                        label="Rating"
+                                        rules={[{ required: true, message: 'Please select a rating' }]}
+                                    >
+                                        <Rate />
+                                    </Form.Item>
 
                                     <Form.Item
-                                        name="message"
-                                        label="Message"
-                                        rules={[{ required: true, message: 'Please enter your message' }]}
+                                        name="feedback"
+                                        label="Feedback"
+                                        rules={[{ required: true, message: 'Please enter your feedback' }]}
                                     >
-                                        <TextArea rows={5} placeholder="How can we help you?" />
+                                        <TextArea rows={4} placeholder="Write your feedback..." />
                                     </Form.Item>
 
                                     <Form.Item>
-                                        <Button
-                                            type="primary"
-                                            htmlType="submit"
-                                            icon={<SendOutlined />}
-                                            block
-                                            className="submit-btn"
-                                        >
-                                            Submit Message
+                                        <Button type="primary" htmlType="submit" block className="review-submit-btn">
+                                            Submit Feedback
                                         </Button>
                                     </Form.Item>
                                 </Form>
@@ -187,7 +169,6 @@ const Contact = () => {
                     </Col>
                 </Row>
 
-                {/* Google Map Location Section */}
                 <motion.div
                     className="map-section"
                     initial={{ opacity: 0, y: 40 }}
@@ -196,7 +177,7 @@ const Contact = () => {
                     transition={{ duration: 0.8 }}
                 >
                     <Divider className="map-divider">
-                        <Title level={2}>📍 Visit Our Store</Title>
+                        <Title level={2}>Visit Our Store</Title>
                     </Divider>
 
                     <div className="map-description">
@@ -214,7 +195,7 @@ const Contact = () => {
                             allowFullScreen=""
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
-                            title="Nellai Velmurugan Store Location"
+                            title="Nellai Velmurgan Store Location"
                         ></iframe>
                     </div>
                 </motion.div>

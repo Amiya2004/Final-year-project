@@ -49,7 +49,7 @@ const AdminSetup = () => {
             <div className="auth-card">
                 <div className="auth-header">
                     <div className="auth-logo">
-                        <img src="/velmurugan logo.png" alt="Nellai Velmurugan Store" className="auth-logo-img" style={{ width: '50px', height: '50px' }} />
+                        <img src="/velmurgan-logo.png" alt="Nellai Velmurgan Store" className="auth-logo-img" style={{ width: '50px', height: '50px' }} />
                         <span className="logo-text">Admin<span className="logo-accent">Setup</span></span>
                     </div>
                     <h1>Create Admin Access</h1>

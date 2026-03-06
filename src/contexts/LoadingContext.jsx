@@ -14,7 +14,7 @@ export const LoadingProvider = ({ children }) => {
         'Setting up your store...',
         'Organizing fresh inventory...',
         'Getting everything ready...',
-        'Loading Nellai Velmurugan Store...'
+        'Loading Nellai Velmurgan Store...'
     ];
 
     const showLoading = (message = null) => {

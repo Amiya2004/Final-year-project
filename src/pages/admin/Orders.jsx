@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Package, Truck, CheckCircle, Clock, Search, Filter, Eye, MoreVertical, Loader, Trash2 } from 'lucide-react';
-import { subscribeToOrders, updateOrderStatus as updateOrderStatusDB, deleteOrder as deleteOrderDB } from '../../services/database';
+import { subscribeToOrders, updateOrderStatus as updateOrderStatusDB, deleteOrder as deleteOrderDB, getProductById, updateProduct } from '../../services/database';
 import OrderDetailsModal from './OrderDetailsModal';
 import './Orders.css';
 
@@ -20,9 +20,30 @@ const Orders = () => {
         return () => unsubscribe();
     }, []);
 
+    const reduceStock = async (items) => {
+        for (const item of items) {
+            try {
+                const pid = item.productId || item.id;
+                if (!pid) continue;
+                const product = await getProductById(pid);
+                if (product) {
+                    const currentStock = Number(product.stock) || 0;
+                    const qty = Number(item.quantity) || 1;
+                    const newStock = Math.max(0, currentStock - qty);
+                    await updateProduct(pid, { stock: newStock });
+                }
+            } catch (err) {
+                console.error(`Failed to reduce stock for ${item.name}:`, err);
+            }
+        }
+    };
+
     const handleUpdateStatus = async (order, newStatus) => {
         try {
             await updateOrderStatusDB(order.id, newStatus);
+            if (newStatus === 'packed' && order.items?.length) {
+                await reduceStock(order.items);
+            }
         } catch (err) {
             console.error('Error updating order status:', err);
             alert('Failed to update order status.');

@@ -5,9 +5,11 @@ import { ChevronLeft, ChevronRight, ArrowRight, Star, TrendingUp, Sparkles, Tag,
 import ProductCard from '../../components/user/ProductCard';
 import { subscribeToProducts } from '../../services/database';
 import { sampleCategories, heroSlides, customerReviews } from '../../data/sampleData';
+import { useReviews } from '../../contexts/ReviewsContext';
 import styles from './Home.module.css';
 
 const Home = () => {
+    const { reviews: savedReviews } = useReviews();
     const [currentSlide, setCurrentSlide] = useState(0);
     const [allProducts, setAllProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -34,6 +36,8 @@ const Home = () => {
     const bestSellers = allProducts.filter(p => (p.rating || 0) >= 4.5).slice(0, 4);
     const newArrivals = allProducts.slice(0, 4);
     const topDeals = allProducts.filter(p => p.category === 'spices').slice(0, 4);
+
+    const combinedReviews = [...(savedReviews || []), ...customerReviews];
 
     return (
         <div className={styles.homePage}>
@@ -150,7 +154,7 @@ const Home = () => {
                     <h2 className={styles.sectionTitle}>What Our Customers Say</h2>
                 </div>
                 <div className={styles.reviewsGrid}>
-                    {customerReviews.map((review, index) => (
+                    {combinedReviews.map((review, index) => (
                         <motion.div
                             key={review.id}
                             className={styles.reviewCard}

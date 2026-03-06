@@ -46,7 +46,7 @@ const AdminSidebar = () => {
             <div className="sidebar-header">
                 <div className="sidebar-logo">
                     <img
-                        src="/velmurugan-logo.png"
+                        src="/velmurgan-logo.png"
                         alt={settings.storeName}
                         className="sidebar-logo-img"
                         style={{ width: isCollapsed ? '42px' : '70px' }}

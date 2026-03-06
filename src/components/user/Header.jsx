@@ -41,7 +41,7 @@ const Header = () => {
         <header className="header">
             <div className="header-container">
                 <Link to="/" className="header-logo">
-                    <img src="/velmurugan-logo.png" alt={settings.storeName} className="header-logo-img" />
+                    <img src="/velmurgan-logo.png" alt={settings.storeName} className="header-logo-img" />
                     <span className="header-logo-name">{settings.storeName}</span>
                 </Link>
 
@@ -102,7 +102,7 @@ const Header = () => {
                                         exit={{ opacity: 0, y: -10 }}
                                     >
                                         <div className="dropdown-header">
-                                            <p className="dropdown-name">{isAdmin ? "Velmurugan Store" : currentUser.displayName || 'User'}</p>
+                                            <p className="dropdown-name">{isAdmin ? "Velmurgan Store" : currentUser.displayName || 'User'}</p>
                                             <p className="dropdown-email">{currentUser.email}</p>
                                         </div>
                                         <div className="dropdown-divider"></div>

@@ -186,3 +186,42 @@ export const seedProducts = async (sampleProducts) => {
     }
     return true; // Seeded successfully
 };
+
+// User Feedback
+export const addFeedback = async (feedback) => {
+    const feedbackRef = ref(database, 'feedback');
+    const newFeedbackRef = push(feedbackRef);
+    await set(newFeedbackRef, {
+        ...feedback,
+        createdAt: new Date().toISOString()
+    });
+    return newFeedbackRef.key;
+};
+
+export const getFeedback = async () => {
+    const feedbackRef = ref(database, 'feedback');
+    const snapshot = await get(feedbackRef);
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.keys(data).map(key => ({ id: key, ...data[key] }));
+    }
+    return [];
+};
+
+export const deleteFeedback = async (feedbackId) => {
+    const feedbackRef = ref(database, `feedback/${feedbackId}`);
+    await remove(feedbackRef);
+};
+
+export const subscribeToFeedback = (callback) => {
+    const feedbackRef = ref(database, 'feedback');
+    return onValue(feedbackRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            const feedback = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+            callback(feedback);
+        } else {
+            callback([]);
+        }
+    });
+};

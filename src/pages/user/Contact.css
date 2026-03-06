@@ -1,6 +1,6 @@
 /* =====================================================
    CONTACT PAGE STYLES
-   Nellai Velmurugan Store - Professional UI
+    Nellai Velmurgan Store - Professional UI
    ===================================================== */
 
 .contact-page {
@@ -41,8 +41,7 @@
 }
 
 /* Card Styling */
-.info-card,
-.form-card {
+.info-card {
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
     height: 100%;
@@ -52,6 +51,18 @@
 .info-card-title.ant-typography {
     color: #1e293b !important;
     margin-bottom: 0 !important;
+}
+
+.contact-info-row {
+    align-items: stretch;
+}
+
+.contact-info-row .ant-col {
+    display: flex;
+}
+
+.contact-info-row .ant-col > div {
+    width: 100%;
 }
 
 /* Info Items */
@@ -94,34 +105,42 @@
     letter-spacing: 0.05em;
 }
 
-/* Form Styling */
-.form-card .ant-form-item-label>label {
+/* Review (Customer Feedback) */
+.review-card {
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    height: 100%;
+    padding: 12px;
+}
+
+.review-subtitle.ant-typography {
+    color: #64748b !important;
+    margin-bottom: 0 !important;
+}
+
+.review-card .ant-form-item-label > label {
     font-weight: 500;
     color: #475569;
 }
 
-.ant-input,
-.ant-input-affix-wrapper,
-.ant-select-selector {
-    border-radius: 8px !important;
+.review-card .ant-input,
+.review-card .ant-input-affix-wrapper,
+.review-card .ant-select-selector {
+    border-radius: 10px !important;
 }
 
-.submit-btn {
-    height: 54px !important;
-    border-radius: 10px !important;
-    font-size: 17px !important;
+.review-submit-btn {
+    height: 52px !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
     font-weight: 600 !important;
     background: #059669 !important;
     border-color: #059669 !important;
-    margin-top: 10px;
-    transition: all 0.3s ease !important;
 }
 
-.submit-btn:hover {
+.review-submit-btn:hover {
     background: #047857 !important;
     border-color: #047857 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.3);
 }
 
 /* Map Section */
@@ -187,8 +206,7 @@
         font-size: 16px;
     }
 
-    .info-card,
-    .form-card {
+    .info-card {
         padding: 8px;
     }
 }

@@ -8,6 +8,7 @@ import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 import { LoadingProvider, useLoading } from './contexts/LoadingContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { ReviewsProvider } from './contexts/ReviewsContext';
 
 // Components
 import Loader from './components/common/Loader';
@@ -67,7 +68,7 @@ const AppContent = () => {
   }, []);
 
   if (initialLoading || authLoading) {
-    return <Loader message="Welcome to Nellai Velmurugan Store..." />;
+    return <Loader message="Welcome to Nellai Velmurgan Store..." />;
   }
 
   return (
@@ -120,13 +121,15 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <SettingsProvider>
-          <WishlistProvider>
-            <CartProvider>
-              <LoadingProvider>
-                <AppContent />
-              </LoadingProvider>
-            </CartProvider>
-          </WishlistProvider>
+          <ReviewsProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <LoadingProvider>
+                  <AppContent />
+                </LoadingProvider>
+              </CartProvider>
+            </WishlistProvider>
+          </ReviewsProvider>
         </SettingsProvider>
       </AuthProvider>
     </BrowserRouter>

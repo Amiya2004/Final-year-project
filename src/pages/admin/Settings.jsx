@@ -21,9 +21,11 @@ import {
     Mail,
     Upload,
     HardDrive,
-    Sliders
+    Sliders,
+    MessageSquare,
+    Trash2
 } from 'lucide-react';
-import { getSettings, updateSettings } from '../../services/database';
+import { getSettings, updateSettings, getFeedback, deleteFeedback } from '../../services/database';
 import { useSettings } from '../../contexts/SettingsContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
@@ -66,6 +68,8 @@ const Settings = () => {
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState('general');
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [feedbackItems, setFeedbackItems] = useState([]);
+    const [feedbackLoading, setFeedbackLoading] = useState(false);
     
     // Password change state
     const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -105,6 +109,12 @@ const Settings = () => {
             }));
         }
     }, []);
+
+    useEffect(() => {
+        if (activeTab === 'feedback') {
+            fetchFeedback();
+        }
+    }, [activeTab]);
 
     const fetchSettings = async () => {
         setLoading(true);
@@ -391,6 +401,37 @@ const Settings = () => {
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     };
 
+    const fetchFeedback = async () => {
+        setFeedbackLoading(true);
+        try {
+            const data = await getFeedback();
+            const sorted = [...data].sort((a, b) => {
+                const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return bTime - aTime;
+            });
+            setFeedbackItems(sorted);
+        } catch (error) {
+            console.error('Error fetching feedback:', error);
+            setMessage({ type: 'error', text: 'Failed to load user feedback.' });
+        } finally {
+            setFeedbackLoading(false);
+        }
+    };
+
+    const handleDeleteFeedback = async (feedbackId) => {
+        if (!confirm('Delete this feedback? This action cannot be undone.')) {
+            return;
+        }
+        try {
+            await deleteFeedback(feedbackId);
+            setFeedbackItems(prev => prev.filter(item => item.id !== feedbackId));
+        } catch (error) {
+            console.error('Error deleting feedback:', error);
+            setMessage({ type: 'error', text: 'Failed to delete feedback.' });
+        }
+    };
+
     const tabs = [
         { id: 'general', icon: Store, label: 'General' },
         { id: 'appearance', icon: Palette, label: 'Appearance' },
@@ -398,7 +439,8 @@ const Settings = () => {
         { id: 'shipping', icon: Truck, label: 'Delivery' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'preferences', icon: Sliders, label: 'Preferences' },
-        { id: 'security', icon: Shield, label: 'Security' }
+        { id: 'security', icon: Shield, label: 'Security' },
+        { id: 'feedback', icon: MessageSquare, label: 'User Feedback' }
     ];
 
     if (loading) {
@@ -1011,6 +1053,71 @@ const Settings = () => {
                                         </div>
                                     </div>
                                 </div>
+                            </motion.div>
+                        )}
+
+                        {activeTab === 'feedback' && (
+                            <motion.div
+                                className="settings-card"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                            >
+                                <div className="card-header">
+                                    <MessageSquare size={22} />
+                                    <h2>User Feedback</h2>
+                                </div>
+                                <div className="feedback-header">
+                                    <p className="field-hint">Feedback submitted from the Contact page appears here.</p>
+                                    <button
+                                        type="button"
+                                        className="outline-btn"
+                                        onClick={fetchFeedback}
+                                        disabled={feedbackLoading}
+                                    >
+                                        <RefreshCw size={18} className={feedbackLoading ? 'spinning' : ''} />
+                                        {feedbackLoading ? 'Refreshing...' : 'Refresh'}
+                                    </button>
+                                </div>
+
+                                {feedbackLoading ? (
+                                    <div className="feedback-loading">
+                                        <Loader className="spinning" />
+                                        <span>Loading feedback...</span>
+                                    </div>
+                                ) : (
+                                    <div className="feedback-list">
+                                        {feedbackItems.length === 0 ? (
+                                            <div className="feedback-empty">
+                                                <p>No feedback received yet.</p>
+                                            </div>
+                                        ) : (
+                                            feedbackItems.map(item => (
+                                                <div key={item.id} className="feedback-item">
+                                                    <div className="feedback-main">
+                                                        <div className="feedback-meta">
+                                                            <strong>{item.name || 'Customer'}</strong>
+                                                            {item.rating ? (
+                                                                <span className="feedback-rating">Rating: {item.rating}/5</span>
+                                                            ) : null}
+                                                        </div>
+                                                        <p>{item.comment}</p>
+                                                        <span className="feedback-date">
+                                                            {item.createdAt ? new Date(item.createdAt).toLocaleString() : 'Unknown date'}
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        className="feedback-delete"
+                                                        onClick={() => handleDeleteFeedback(item.id)}
+                                                        title="Delete feedback"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                )}
                             </motion.div>
                         )}
                     </form>

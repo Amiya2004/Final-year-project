@@ -1,13 +1,13 @@
 // Sample data for initial database seeding
 export const sampleCategories = [
     { id: 'Vegetables', name: 'Vegetables', icon: '🥬', image: '/Vegetables.jpg', color: '#22c55e' },
-    { id: 'dairy-eggs', name: 'Dairy & Eggs', icon: '🥛', color: '#3b82f6' },
-    { id: 'tea-coffee', name: 'Tea, Coffee & Health Drinks', icon: '☕', color: '#92400e' },
-    { id: 'beverages', name: 'Beverages', icon: '🥤', color: '#8b5cf6' },
-    { id: 'snacks', name: 'Snacks', icon: '🍿', color: '#ec4899' },
-    { id: 'household', name: 'Soaps & Shampoos', icon: '🧼', color: '#06b6d4' },
+    { id: 'dairy-eggs', name: 'Dairy & Eggs', icon: '🥛', image: '/Eggs.jpg', color: '#3b82f6' },
+    { id: 'tea-coffee', name: 'Tea, Coffee & Health Drinks', icon: '☕', image: '/Health drink.jpg', color: '#92400e' },
+    { id: 'beverages', name: 'Beverages', icon: '🥤', image: '/beverages.jpg', color: '#8b5cf6' },
+    { id: 'snacks', name: 'Snacks', icon: '🍿', image: '/snacks.jpg', color: '#ec4899' },
+    { id: 'household', name: 'Soaps & Shampoos', icon: '🧼', image: '/soaps.jpg', color: '#06b6d4' },
     { id: 'spices', name: 'Spices & Masala', icon: '🌶️', image: '/Masala.jpg', color: '#ef4444' },
-    { id: 'grains', name: 'Grains & Pulses', icon: '🌾', color: '#84cc16' }
+    { id: 'grains', name: 'Grains & Pulses', icon: '🌾', image: '/grains&pulses.jpg', color: '#84cc16' }
 ];
 
 
@@ -148,12 +148,7 @@ export const categorySalesData = [
     { name: 'Soaps & Shampoos', value: 2, color: '#06b6d4' }
 ];
 
-export const customerReviews = [
-    { id: 1, name: 'Anitha Rajan', rating: 5, comment: 'Excellent quality products! The spices are always fresh.', avatar: '👩' },
-    { id: 2, name: 'Murugan S', rating: 4, comment: 'Quick delivery and great prices. Will order again!', avatar: '👨' },
-    { id: 3, name: 'Kavitha M', rating: 5, comment: 'Love the variety of quality essentials available here.', avatar: '👩' },
-    { id: 4, name: 'Senthil Kumar', rating: 4, comment: 'Good service and fresh vegetables every time.', avatar: '👨' }
-];
+export const customerReviews = [];
 
 export const heroSlides = [
     {

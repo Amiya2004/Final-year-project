@@ -9,7 +9,7 @@ const USE_SIMULATED_PAYMENT = true;
 
 // UPI ID for QR code payment (change to your real UPI ID)
 const MERCHANT_UPI_ID = 'nellaistore@upi';
-const MERCHANT_NAME = 'Nellai Velmurugan Store';
+const MERCHANT_NAME = 'Nellai Velmurgan Store';
 
 /**
  * Initialize Razorpay payment
@@ -17,7 +17,7 @@ const MERCHANT_NAME = 'Nellai Velmurugan Store';
 export const initiateRazorpayPayment = ({
     amount,
     currency = 'INR',
-    name = 'Nellai Velmurugan Store',
+    name = 'Nellai Velmurgan Store',
     description = 'Grocery Purchase',
     orderId,
     prefill = {},
@@ -66,7 +66,7 @@ export const initiateRazorpayPayment = ({
             },
             notes: {
                 order_id: orderId,
-                store: 'Nellai Velmurugan Store',
+                store: 'Nellai Velmurgan Store',
             },
             theme: { color: '#22c55e' },
             modal: {

@@ -11,7 +11,7 @@ const Footer = () => {
                 <div className="footer-grid">
                     <div className="footer-brand">
                         <Link to="/" className="footer-logo">
-                            <img src="/velmurugan logo.png" alt={settings.storeName} className="footer-logo-img" style={{ width: '40px', height: '40px' }} />
+                            <img src="/velmurgan-logo.png" alt={settings.storeName} className="footer-logo-img" style={{ width: '40px', height: '40px' }} />
                             <span className="logo-text">{settings.storeName}</span>
                         </Link>
                         <p className="footer-description">
@@ -46,7 +46,7 @@ const Footer = () => {
                         <h4>Contact Us</h4>
                         <div className="contact-item">
                             <MapPin size={18} />
-                            <span>{settings.storeName}, Sullipalayam, Perundurai-638052</span>
+                            <span>156, Nellai Velmurgan Store, Sullipalayam, Perundurai-638052</span>
                         </div>
                         <div className="contact-item">
                             <Phone size={18} />

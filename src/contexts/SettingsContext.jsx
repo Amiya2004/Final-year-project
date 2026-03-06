@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { getSettings } from '../services/database';
+import { getSettings, updateSettings } from '../services/database';
 
 const SettingsContext = createContext();
 
@@ -14,7 +14,7 @@ export const useSettings = () => {
 export const SettingsProvider = ({ children }) => {
     const [settings, setSettings] = useState({
         // General Settings
-        storeName: 'Nellai Velmurugan Store',
+        storeName: 'Nellai Velmurgan Store',
         contactEmail: 'contact@example.com',
         contactPhone: '+91 98765 43210',
         deliveryFee: 40,
@@ -49,9 +49,18 @@ export const SettingsProvider = ({ children }) => {
             try {
                 const data = await getSettings();
                 if (data) {
-                    setSettings(data);
+                    const normalized = {
+                        ...data,
+                        storeName: data.storeName === 'Nellai Velmurugan Store'
+                            ? 'Nellai Velmurgan Store'
+                            : data.storeName
+                    };
+                    setSettings(normalized);
                     // Apply theme settings
-                    applyThemeSettings(data);
+                    applyThemeSettings(normalized);
+                    if (normalized.storeName !== data.storeName) {
+                        updateSettings({ storeName: normalized.storeName });
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching settings:', error);

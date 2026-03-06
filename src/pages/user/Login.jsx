@@ -81,7 +81,7 @@ const Login = () => {
             >
                 <div className="auth-header">
                     <Link to="/" className="auth-logo">
-                        <img src="/velmurugan-logo.png" alt="Nellai Velmurugan Store" className="auth-logo-img" style={{ width: '50px', height: '50px' }} />
+                        <img src="/velmurgan-logo.png" alt="Nellai Velmurgan Store" className="auth-logo-img" style={{ width: '50px', height: '50px' }} />
                     </Link>
                     <h1>{isLogin ? 'Welcome Back!' : 'Create Account'}</h1>
                     <p>{isLogin ? 'Sign in to continue shopping' : 'Join us for fresh groceries'}</p>

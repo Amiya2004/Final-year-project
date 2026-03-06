@@ -38,7 +38,7 @@ const Loader = ({ message = 'Loading...' }) => {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.8 }}
                 >
-                    <h1>Nellai Velmurugan Store</h1>
+                    <h1>Nellai Velmurgan Store</h1>
                 </motion.div>
 
                 <motion.div
