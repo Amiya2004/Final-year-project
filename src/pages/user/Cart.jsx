@@ -4,16 +4,18 @@ import { motion } from 'framer-motion';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, CreditCard } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import './Cart.css';
 
 const Cart = () => {
     const { cart, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart();
     const { currentUser } = useAuth();
+    const { settings } = useSettings();
     const navigate = useNavigate();
     const [promoCode, setPromoCode] = useState('');
     const [discount, setDiscount] = useState(0);
 
-    const deliveryFee = cartTotal >= 500 ? 0 : 40;
+    const deliveryFee = cartTotal >= settings.minOrderForFreeDelivery ? 0 : settings.deliveryFee;
     const finalTotal = cartTotal - discount + deliveryFee;
 
     const applyPromo = () => {
@@ -142,9 +144,9 @@ const Cart = () => {
                             <span>Delivery</span>
                             <span>{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}</span>
                         </div>
-                        {cartTotal < 500 && (
+                        {cartTotal < settings.minOrderForFreeDelivery && (
                             <p className="free-delivery-hint">
-                                Add ₹{(500 - cartTotal).toFixed(2)} more for free delivery
+                                Add ₹{(settings.minOrderForFreeDelivery - cartTotal).toFixed(2)} more for free delivery
                             </p>
                         )}
                     </div>

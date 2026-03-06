@@ -9,7 +9,8 @@ import {
     Settings,
     LogOut,
     ChevronLeft,
-    Menu
+    Menu,
+    Home
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
@@ -23,6 +24,10 @@ const AdminSidebar = () => {
 
     const handleLogout = async () => {
         await logout();
+        navigate('/');
+    };
+
+    const handleGoHome = () => {
         navigate('/');
     };
 
@@ -41,7 +46,7 @@ const AdminSidebar = () => {
             <div className="sidebar-header">
                 <div className="sidebar-logo">
                     <img
-                        src="/logo.svg"
+                        src="/velmurugan-logo.png"
                         alt={settings.storeName}
                         className="sidebar-logo-img"
                         style={{ width: isCollapsed ? '42px' : '70px' }}
@@ -52,6 +57,13 @@ const AdminSidebar = () => {
                     onClick={() => setIsCollapsed(!isCollapsed)}
                 >
                     {isCollapsed ? <Menu size={20} /> : <ChevronLeft size={20} />}
+                </button>
+            </div>
+
+            <div className="sidebar-home-link">
+                <button className="home-btn" onClick={handleGoHome}>
+                    <Home size={20} />
+                    {!isCollapsed && <span>Back to Home</span>}
                 </button>
             </div>
 

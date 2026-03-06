@@ -41,7 +41,8 @@ const Header = () => {
         <header className="header">
             <div className="header-container">
                 <Link to="/" className="header-logo">
-                    <img src="/logo.svg" alt={settings.storeName} className="header-logo-img" />
+                    <img src="/velmurugan-logo.png" alt={settings.storeName} className="header-logo-img" />
+                    <span className="header-logo-name">{settings.storeName}</span>
                 </Link>
 
                 <form className="header-search" onSubmit={handleSearch}>
@@ -101,7 +102,7 @@ const Header = () => {
                                         exit={{ opacity: 0, y: -10 }}
                                     >
                                         <div className="dropdown-header">
-                                            <p className="dropdown-name">{currentUser.displayName || 'User'}</p>
+                                            <p className="dropdown-name">{isAdmin ? "Velmurugan Store" : currentUser.displayName || 'User'}</p>
                                             <p className="dropdown-email">{currentUser.email}</p>
                                         </div>
                                         <div className="dropdown-divider"></div>
@@ -115,10 +116,12 @@ const Header = () => {
                                             <Package size={18} />
                                             My Orders
                                         </Link>
-                                        <Link to="/wishlist" className="dropdown-item" onClick={() => setIsProfileOpen(false)}>
-                                            <Heart size={18} />
-                                            Wishlist
-                                        </Link>
+                                        {!isAdmin && (
+                                            <Link to="/wishlist" className="dropdown-item" onClick={() => setIsProfileOpen(false)}>
+                                                <Heart size={18} />
+                                                Wishlist
+                                            </Link>
+                                        )}
 
                                         <button className="dropdown-item logout" onClick={handleLogout}>
                                             <LogOut size={18} />

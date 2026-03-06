@@ -74,7 +74,10 @@ export const updateOrderStatus = async (orderId, status) => {
     await update(orderRef, { status, updatedAt: new Date().toISOString() });
 };
 
-
+export const deleteOrder = async (orderId) => {
+    const orderRef = ref(database, `orders/${orderId}`);
+    await remove(orderRef);
+};
 
 // Categories
 export const getCategories = async () => {

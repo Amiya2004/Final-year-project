@@ -560,6 +560,24 @@
     color: #10b981;
 }
 
+/* COD Button Variant */
+.checkout-pay-now-btn.cod-btn {
+    background: #f59e0b;
+    box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
+}
+
+.checkout-pay-now-btn.cod-btn:hover:not(:disabled) {
+    background: #d97706;
+    box-shadow: 0 20px 25px -5px rgba(245, 158, 11, 0.3);
+}
+
+/* COD Note in Order Success */
+.cod-note .detail-value {
+    font-size: 0.875rem;
+    color: #92400e;
+    font-style: italic;
+}
+
 /* Empty State */
 .checkout-empty-state {
     max-width: 500px;

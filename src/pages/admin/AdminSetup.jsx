@@ -3,7 +3,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { ref, set } from 'firebase/database';
 import { auth, database } from '../../config/firebase';
 import { useNavigate } from 'react-router-dom';
-import { Shield, User, Mail, Lock } from 'lucide-react';
+import { User, Mail, Lock } from 'lucide-react';
 import '../user/Auth.css'; // Reusing auth styles
 
 const AdminSetup = () => {
@@ -49,7 +49,7 @@ const AdminSetup = () => {
             <div className="auth-card">
                 <div className="auth-header">
                     <div className="auth-logo">
-                        <Shield className="logo-icon" size={32} color="#22c55e" />
+                        <img src="/velmurugan logo.png" alt="Nellai Velmurugan Store" className="auth-logo-img" style={{ width: '50px', height: '50px' }} />
                         <span className="logo-text">Admin<span className="logo-accent">Setup</span></span>
                     </div>
                     <h1>Create Admin Access</h1>

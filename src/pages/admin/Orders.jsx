@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Package, Truck, CheckCircle, Clock, Search, Filter, Eye, MoreVertical, Loader } from 'lucide-react';
-import { subscribeToOrders, updateOrderStatus as updateOrderStatusDB } from '../../services/database';
+import { Package, Truck, CheckCircle, Clock, Search, Filter, Eye, MoreVertical, Loader, Trash2 } from 'lucide-react';
+import { subscribeToOrders, updateOrderStatus as updateOrderStatusDB, deleteOrder as deleteOrderDB } from '../../services/database';
+import OrderDetailsModal from './OrderDetailsModal';
 import './Orders.css';
 
 const Orders = () => {
@@ -9,6 +10,7 @@ const Orders = () => {
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
     useEffect(() => {
         const unsubscribe = subscribeToOrders((data) => {
@@ -27,9 +29,24 @@ const Orders = () => {
         }
     };
 
+    const handleDeleteOrder = async (orderId) => {
+        if (window.confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+            try {
+                await deleteOrderDB(orderId);
+            } catch (err) {
+                console.error('Error deleting order:', err);
+                alert('Failed to delete order.');
+            }
+        }
+    };
+
     const filteredOrders = orders.filter(order => {
         const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-        const matchesSearch = (order.customerName || '').toLowerCase().includes(searchQuery.toLowerCase());
+        const searchLower = searchQuery.toLowerCase();
+        const matchesSearch = 
+            (order.customerName || '').toLowerCase().includes(searchLower) ||
+            (order.id || '').toLowerCase().includes(searchLower) ||
+            (order.items.some(item => item.name.toLowerCase().includes(searchLower)));
         return matchesStatus && matchesSearch;
     });
 
@@ -135,7 +152,7 @@ const Orders = () => {
                     <Search size={20} />
                     <input
                         type="text"
-                        placeholder="Search by customer name..."
+                        placeholder="Search by customer, order ID, or item..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -197,7 +214,7 @@ const Orders = () => {
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.05 }}
                                 >
-                                    <td className="order-id">
+                                    <td className="order-id" onClick={() => setSelectedOrder(order)}>
                                         #{order.id ? order.id.slice(-6).toUpperCase() : `ORD${String(index + 1).padStart(4, '0')}`}
                                     </td>
                                     <td>
@@ -239,7 +256,7 @@ const Orders = () => {
                                     </td>
                                     <td>
                                         <div className="action-buttons">
-                                            <button className="action-btn view">
+                                            <button className="action-btn view" onClick={() => setSelectedOrder(order)}>
                                                 <Eye size={16} />
                                             </button>
                                             {order.status === 'pending' && (
@@ -258,6 +275,14 @@ const Orders = () => {
                                                     Deliver
                                                 </button>
                                             )}
+                                            {order.status === 'delivered' && (
+                                                <button
+                                                    className="action-btn delete"
+                                                    onClick={() => handleDeleteOrder(order.id)}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </motion.tr>
@@ -273,6 +298,10 @@ const Orders = () => {
                     <h3>No orders found</h3>
                     <p>Try adjusting your filters</p>
                 </div>
+            )}
+
+            {selectedOrder && (
+                <OrderDetailsModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
             )}
         </div>
     );

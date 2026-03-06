@@ -16,9 +16,11 @@ const OrderSuccess = () => {
         return <Navigate to="/" replace />;
     }
 
-    const { orderId, paymentId, total, itemCount } = orderData;
+    const { orderId, paymentId, paymentMethod, total, itemCount } = orderData;
+    const isCOD = paymentMethod === 'cod';
 
     const copyPaymentId = () => {
+        if (isCOD) return;
         navigator.clipboard.writeText(paymentId);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -81,23 +83,37 @@ const OrderSuccess = () => {
                     </div>
 
                     <div className="detail-row">
-                        <span className="detail-label">💰 Amount Paid</span>
+                        <span className="detail-label">{isCOD ? '💵 Amount Due' : '💰 Amount Paid'}</span>
                         <span className="detail-value amount">₹{total.toFixed(2)}</span>
                     </div>
 
-                    <div className="detail-row payment-id-row">
-                        <span className="detail-label">💳 Payment ID</span>
-                        <span className="detail-value payment-id">
-                            {paymentId}
-                            <button
-                                className="copy-btn"
-                                onClick={copyPaymentId}
-                                title="Copy Payment ID"
-                            >
-                                {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
-                            </button>
-                        </span>
+                    <div className="detail-row">
+                        <span className="detail-label">💳 Payment Method</span>
+                        <span className="detail-value">{isCOD ? 'Cash on Delivery' : 'Razorpay (Online)'}</span>
                     </div>
+
+                    {!isCOD && (
+                        <div className="detail-row payment-id-row">
+                            <span className="detail-label">🔑 Payment ID</span>
+                            <span className="detail-value payment-id">
+                                {paymentId}
+                                <button
+                                    className="copy-btn"
+                                    onClick={copyPaymentId}
+                                    title="Copy Payment ID"
+                                >
+                                    {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
+                                </button>
+                            </span>
+                        </div>
+                    )}
+
+                    {isCOD && (
+                        <div className="detail-row cod-note">
+                            <span className="detail-label">📋 Note</span>
+                            <span className="detail-value">Please keep exact change ready at the time of delivery</span>
+                        </div>
+                    )}
                 </motion.div>
 
                 {/* Status Timeline */}

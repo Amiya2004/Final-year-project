@@ -180,10 +180,13 @@ const Settings = () => {
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
         
+        const isNumber = type === 'number';
+        const parsedValue = isNumber ? parseFloat(value) : value;
+
         setSettings(prev => {
             const newSettings = {
                 ...prev,
-                [name]: type === 'checkbox' ? checked : (type === 'number' ? parseFloat(value) || 0 : value)
+                [name]: type === 'checkbox' ? checked : (isNumber ? (isNaN(parsedValue) ? '' : parsedValue) : value)
             };
             
             // If theme or color changes, apply immediately

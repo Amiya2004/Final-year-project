@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Star, ShoppingCart, Shield, Truck, Clock, Check } from 'lucide-react';
+import { X, Star, ShoppingCart, Shield, Truck, Clock, Check, Heart } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 import styles from './ProductDetailsModal.module.css';
 
 const ProductDetailsModal = ({ product, isOpen, onClose }) => {
     const { addToCart } = useCart();
+    const { toggleWishlist, isInWishlist } = useWishlist();
     const [selectedBrand, setSelectedBrand] = useState('');
     const [selectedUnit, setSelectedUnit] = useState(null);
     const [quantity, setQuantity] = useState(1);
@@ -65,7 +67,20 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
                             </div>
 
                             <div className={styles.infoSection}>
-                                <span className={styles.categoryBadge}>{product.category}</span>
+                                <div className={styles.titleRow}>
+                                    <span className={styles.categoryBadge}>{product.category}</span>
+                                    <button
+                                        className={`${styles.wishlistBtn} ${isInWishlist(product.name) ? styles.wishlisted : ''}`}
+                                        onClick={() => toggleWishlist(product)}
+                                        title={isInWishlist(product.name) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                                    >
+                                        <Heart
+                                            size={22}
+                                            fill={isInWishlist(product.name) ? '#ef4444' : 'none'}
+                                            color={isInWishlist(product.name) ? '#ef4444' : '#94a3b8'}
+                                        />
+                                    </button>
+                                </div>
                                 <h2 className={styles.productTitle}>{product.name}</h2>
 
                                 <div className={styles.ratingInfo}>

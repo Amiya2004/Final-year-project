@@ -339,7 +339,8 @@
 .continue-shopping {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center; /* Center content */
+    gap: 0.75rem; /* Adjust gap */
     padding: 1rem 2rem;
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
     color: white;

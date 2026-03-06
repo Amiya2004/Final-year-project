@@ -20,32 +20,26 @@
 .header-logo {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     text-decoration: none;
     flex-shrink: 0;
 }
 
-.logo-icon {
-    font-size: 1.75rem;
-}
-
-.logo-text {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e293b;
-}
-
-.logo-accent {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #22c55e;
-}
-
 .header-logo-img {
-    height: 52px;
-    width: auto;
+    height: 48px;
+    width: 48px;
     object-fit: contain;
-    border-radius: 8px;
+    border-radius: 50%;
+}
+
+.header-logo-name {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    max-width: 150px;
+    white-space: normal;
 }
 
 .header-search {
@@ -140,6 +134,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.wishlist-badge {
+    background: #ec4899;
+}
+
+.wishlist-btn:hover {
+    color: #ef4444 !important;
 }
 
 .profile-dropdown {

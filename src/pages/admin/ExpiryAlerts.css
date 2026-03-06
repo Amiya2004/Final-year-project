@@ -221,7 +221,8 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    min-width: 100px;
+    min-width: 120px; /* Increased min-width */
+    text-align: center; /* Center text */
 }
 
 .action-btn:hover {

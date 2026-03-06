@@ -305,12 +305,21 @@
 }
 
 .action-btn.deliver {
-    background: #dcfce7;
-    color: #16a34a;
+    background-color: #10b981;
+    color: white;
 }
 
 .action-btn.deliver:hover {
     background: #bbf7d0;
+}
+
+.action-btn.delete {
+    background-color: #ef4444;
+    color: white;
+}
+
+.action-btn.delete:hover {
+    background-color: #dc2626;
 }
 
 /* No Orders */

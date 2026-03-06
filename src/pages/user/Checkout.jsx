@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     MapPin, Phone, User, Mail, CreditCard, Shield, Truck,
-    ChevronRight, ShoppingBag, CheckCircle, ArrowLeft, Clock, Tag
+    ChevronRight, ShoppingBag, CheckCircle, ArrowLeft, Clock, Tag, Banknote
 } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,6 +20,7 @@ const Checkout = () => {
 
     const [step, setStep] = useState(1); // 1: Address, 2: Payment
     const [processing, setProcessing] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' or 'cod'
     const [address, setAddress] = useState({
         fullName: currentUser?.displayName || '',
         phone: '',
@@ -86,8 +87,68 @@ const Checkout = () => {
 
         const orderId = generateOrderId();
 
+        // Helper to build common order data
+        const buildOrderData = (paymentInfo) => ({
+            orderId: orderId,
+            items: cart.map((item, index) => ({
+                productId: String(item.id || `item_${index}`),
+                name: String(item.name || 'Unknown Item'),
+                price: Number(item.price) || 0,
+                quantity: Number(item.quantity) || 1,
+                image: String(item.image || ''),
+                category: String(item.category || ''),
+                unit: String(item.unit || ''),
+            })),
+            address: {
+                fullName: String(address.fullName || ''),
+                phone: String(address.phone || ''),
+                email: String(address.email || ''),
+                addressLine1: String(address.addressLine1 || ''),
+                addressLine2: String(address.addressLine2 || ''),
+                city: String(address.city || ''),
+                state: String(address.state || ''),
+                pincode: String(address.pincode || ''),
+            },
+            subtotal: Number(cartTotal) || 0,
+            deliveryFee: Number(deliveryFee) || 0,
+            total: Number(finalTotal) || 0,
+            payment: paymentInfo,
+            customerName: String(address.fullName || ''),
+            customerEmail: String(address.email || ''),
+            customerPhone: String(address.phone || ''),
+            status: 'pending',
+        });
+
+        // ===== Cash on Delivery =====
+        if (paymentMethod === 'cod') {
+            try {
+                const orderData = buildOrderData({
+                    method: 'cod',
+                    status: 'unpaid',
+                });
+                const cleanOrderData = removeUndefined(orderData);
+                await createOrder(currentUser.uid, cleanOrderData);
+                await clearCart();
+                navigate('/order-success', {
+                    state: {
+                        orderId,
+                        paymentId: 'COD',
+                        paymentMethod: 'cod',
+                        total: finalTotal,
+                        itemCount: cart.length,
+                    }
+                });
+            } catch (error) {
+                console.error('Error placing COD order:', error);
+                alert('Failed to place order. Please try again.');
+            } finally {
+                setProcessing(false);
+            }
+            return;
+        }
+
+        // ===== Razorpay Payment =====
         try {
-            // Wait for payment to complete
             const payment = await initiateRazorpayPayment({
                 amount: finalTotal,
                 description: `Order ${orderId} - ${cart.length} items`,
@@ -99,70 +160,33 @@ const Checkout = () => {
                 },
             });
 
-            // Payment successful — now save order to Firebase
             try {
-                // Build clean order data (no undefined values)
-                const orderData = {
-                    orderId: orderId,
-                    items: cart.map((item, index) => ({
-                        productId: String(item.id || `item_${index}`),
-                        name: String(item.name || 'Unknown Item'),
-                        price: Number(item.price) || 0,
-                        quantity: Number(item.quantity) || 1,
-                        image: String(item.image || ''),
-                        category: String(item.category || ''),
-                        unit: String(item.unit || ''),
-                    })),
-                    address: {
-                        fullName: String(address.fullName || ''),
-                        phone: String(address.phone || ''),
-                        email: String(address.email || ''),
-                        addressLine1: String(address.addressLine1 || ''),
-                        addressLine2: String(address.addressLine2 || ''),
-                        city: String(address.city || ''),
-                        state: String(address.state || ''),
-                        pincode: String(address.pincode || ''),
-                    },
-                    subtotal: Number(cartTotal) || 0,
-                    deliveryFee: Number(deliveryFee) || 0,
-                    total: Number(finalTotal) || 0,
-                    payment: {
-                        razorpay_payment_id: String(payment.razorpay_payment_id || ''),
-                        razorpay_order_id: String(payment.razorpay_order_id || ''),
-                        method: 'razorpay',
-                        status: 'paid',
-                    },
-                    customerName: String(address.fullName || ''),
-                    customerEmail: String(address.email || ''),
-                    customerPhone: String(address.phone || ''),
-                    status: 'pending',
-                };
-
-                // Remove any remaining undefined values
+                const orderData = buildOrderData({
+                    razorpay_payment_id: String(payment.razorpay_payment_id || ''),
+                    razorpay_order_id: String(payment.razorpay_order_id || ''),
+                    method: 'razorpay',
+                    status: 'paid',
+                });
                 const cleanOrderData = removeUndefined(orderData);
-
                 await createOrder(currentUser.uid, cleanOrderData);
-
-                // Clear the cart
                 await clearCart();
-
-                // Navigate to success page
                 navigate('/order-success', {
                     state: {
                         orderId,
                         paymentId: payment.razorpay_payment_id,
+                        paymentMethod: 'razorpay',
                         total: finalTotal,
                         itemCount: cart.length,
                     }
                 });
             } catch (error) {
                 console.error('Error saving order:', error);
-                // Still navigate to success
                 await clearCart();
                 navigate('/order-success', {
                     state: {
                         orderId,
                         paymentId: payment.razorpay_payment_id,
+                        paymentMethod: 'razorpay',
                         total: finalTotal,
                         itemCount: cart.length,
                     }
@@ -380,7 +404,10 @@ const Checkout = () => {
                                 <div className="checkout-payment-options">
                                     <h3>Select Payment Method</h3>
 
-                                    <div className="checkout-payment-option selected">
+                                    <div
+                                        className={`checkout-payment-option ${paymentMethod === 'razorpay' ? 'selected' : ''}`}
+                                        onClick={() => setPaymentMethod('razorpay')}
+                                    >
                                         <div className="checkout-option-radio">
                                             <div className="checkout-radio-dot" />
                                         </div>
@@ -399,19 +426,49 @@ const Checkout = () => {
                                             <span>🏦</span>
                                         </div>
                                     </div>
+
+                                    <div
+                                        className={`checkout-payment-option ${paymentMethod === 'cod' ? 'selected' : ''}`}
+                                        onClick={() => setPaymentMethod('cod')}
+                                    >
+                                        <div className="checkout-option-radio">
+                                            <div className="checkout-radio-dot" />
+                                        </div>
+                                        <div className="checkout-option-info">
+                                            <div className="checkout-option-title">
+                                                <Banknote size={18} />
+                                                <span>Cash on Delivery</span>
+                                            </div>
+                                            <p className="checkout-option-desc">
+                                                Pay when your order is delivered to your doorstep
+                                            </p>
+                                        </div>
+                                        <div className="checkout-option-icons">
+                                            <span>💵</span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* Security Info */}
                                 <div className="checkout-security-info">
                                     <Shield size={18} />
                                     <div>
-                                        <strong>100% Secure Payment</strong>
-                                        <p>All transactions are secure and encrypted by Razorpay</p>
+                                        {paymentMethod === 'razorpay' ? (
+                                            <>
+                                                <strong>100% Secure Payment</strong>
+                                                <p>All transactions are secure and encrypted by Razorpay</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <strong>Cash on Delivery</strong>
+                                                <p>Pay with cash when your order arrives. No advance payment needed.</p>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
 
                                 <button
-                                    className={`checkout-pay-now-btn ${processing ? 'processing' : ''}`}
+                                    className={`checkout-pay-now-btn ${processing ? 'processing' : ''} ${paymentMethod === 'cod' ? 'cod-btn' : ''}`}
                                     onClick={handlePayment}
                                     disabled={processing}
                                 >
@@ -419,6 +476,11 @@ const Checkout = () => {
                                         <>
                                             <div className="checkout-btn-spinner" />
                                             Processing...
+                                        </>
+                                    ) : paymentMethod === 'cod' ? (
+                                        <>
+                                            <Banknote size={20} />
+                                            Place Order — ₹{finalTotal.toFixed(2)}
                                         </>
                                     ) : (
                                         <>

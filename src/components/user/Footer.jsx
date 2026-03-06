@@ -11,7 +11,7 @@ const Footer = () => {
                 <div className="footer-grid">
                     <div className="footer-brand">
                         <Link to="/" className="footer-logo">
-                            <span className="logo-icon">🛒</span>
+                            <img src="/velmurugan logo.png" alt={settings.storeName} className="footer-logo-img" style={{ width: '40px', height: '40px' }} />
                             <span className="logo-text">{settings.storeName}</span>
                         </Link>
                         <p className="footer-description">
