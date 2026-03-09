@@ -10,7 +10,10 @@ import {
     DollarSign,
     ArrowUp,
     ArrowDown,
-    Loader
+    Loader,
+    X,
+    ChevronRight,
+    ChevronDown
 } from 'lucide-react';
 import {
     BarChart,
@@ -40,6 +43,8 @@ const Dashboard = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [seeding, setSeeding] = useState(false);
+    const [expandedCard, setExpandedCard] = useState(null);
+    const [expandedProduct, setExpandedProduct] = useState(null);
 
     useEffect(() => {
         let productsLoaded = false;
@@ -87,23 +92,67 @@ const Dashboard = () => {
     const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
     const lowStockItems = products.filter(p => p.stock <= lowStockThreshold && p.stock > 0).length;
     const overstockItems = products.filter(p => p.stock > overStockThreshold).length;
-    const expiryAlertItems = products.filter(p => {
+    const expiryAlertProducts = products.filter(p => {
         if (!p.expiryDate) return false;
         const daysUntilExpiry = Math.ceil((new Date(p.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
         return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
-    }).length;
+    });
+    const expiryAlertItems = expiryAlertProducts.length;
+    const lowStockProducts = products.filter(p => p.stock <= lowStockThreshold && p.stock > 0);
+    const overstockProducts = products.filter(p => p.stock > overStockThreshold);
+    const pendingOrdersList = orders.filter(o => o.status === 'pending');
+    const todayOrdersList = orders;
 
     const pendingOrders = orders.filter(o => o.status === 'pending').length;
     const todaySales = orders.reduce((sum, o) => sum + (o.total || 0), 0);
 
+    const getBrands = (p) => {
+        if (p.brands && p.brands.length > 0 && typeof p.brands[0] === 'object' && p.brands[0].variants) {
+            return p.brands;
+        }
+        if (p.brands && p.brands.length > 0 && typeof p.brands[0] === 'string') {
+            const variants = (p.availableUnits || []).map(u => typeof u === 'string' ? { label: u, price: p.price, stock: 0 } : { label: u.label || u, price: u.price || p.price, stock: u.stock || 0 });
+            return p.brands.filter(b => b.trim()).map(name => ({ name, variants }));
+        }
+        if (p.availableUnits && p.availableUnits.length > 0) {
+            const variants = p.availableUnits.map(u => typeof u === 'string' ? { label: u, price: p.price, stock: 0 } : { label: u.label || u, price: u.price || p.price, stock: u.stock || 0 });
+            return [{ name: 'Default', variants }];
+        }
+        return [];
+    };
+
+    const getDetailItems = (key) => {
+        switch (key) {
+            case 'total-products':
+                return products.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, price: p.price, image: p.image, unit: p.unit, brands: getBrands(p) }));
+            case 'available-stock':
+                return products.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, unit: p.unit || 'pcs', image: p.image, brands: getBrands(p) }));
+            case 'low-stock':
+                return lowStockProducts.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, unit: p.unit || 'pcs', image: p.image, brands: getBrands(p) }));
+            case 'overstock':
+                return overstockProducts.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, unit: p.unit || 'pcs', image: p.image, brands: getBrands(p) }));
+            case 'expiry-alerts':
+                return expiryAlertProducts.map(p => {
+                    const days = Math.ceil((new Date(p.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+                    return { id: p.id, name: p.name, category: p.category, expiryDate: p.expiryDate, daysLeft: days, image: p.image, brands: getBrands(p) };
+                });
+            case 'pending-orders':
+                return pendingOrdersList.map(o => ({ name: o.customerName || 'Customer', items: o.items ? o.items.length : 0, total: o.total || 0, status: o.status }));
+            case 'today-sales':
+                return todayOrdersList.map(o => ({ name: o.customerName || 'Customer', total: o.total || 0, status: o.status, items: o.items ? o.items.length : 0 }));
+            default:
+                return [];
+        }
+    };
+
     const statsCards = [
-        { label: 'Total Products', value: totalProducts, icon: Package, color: '#3b82f6', change: '+12%', up: true },
-        { label: 'Available Stock', value: totalStock, icon: Boxes, color: '#22c55e', change: '+8%', up: true },
-        { label: 'Low Stock Items', value: lowStockItems, icon: TrendingDown, color: '#ef4444', change: '-3', up: false },
-        { label: 'Overstock Items', value: overstockItems, icon: TrendingUp, color: '#f59e0b', change: '+2', up: true },
-        { label: 'Expiry Alerts', value: expiryAlertItems, icon: AlertTriangle, color: '#f97316', change: '5 items', up: false },
-        { label: 'Pending Orders', value: pendingOrders, icon: ShoppingCart, color: '#06b6d4', change: '4 new', up: true },
-        { label: "Today's Sales", value: `₹${todaySales.toLocaleString()}`, icon: DollarSign, color: '#10b981', change: '+18%', up: true }
+        { key: 'total-products', label: 'Total Products', value: totalProducts, icon: Package, color: '#3b82f6', change: '+12%', up: true },
+        { key: 'available-stock', label: 'Available Stock', value: totalStock, icon: Boxes, color: '#22c55e', change: '+8%', up: true },
+        { key: 'low-stock', label: 'Low Stock Items', value: lowStockItems, icon: TrendingDown, color: '#ef4444', change: '-3', up: false },
+        { key: 'overstock', label: 'Overstock Items', value: overstockItems, icon: TrendingUp, color: '#f59e0b', change: '+2', up: true },
+        { key: 'expiry-alerts', label: 'Expiry Alerts', value: expiryAlertItems, icon: AlertTriangle, color: '#f97316', change: '5 items', up: false },
+        { key: 'pending-orders', label: 'Pending Orders', value: pendingOrders, icon: ShoppingCart, color: '#06b6d4', change: '4 new', up: true },
+        { key: 'today-sales', label: "Today's Sales", value: `₹${todaySales.toLocaleString()}`, icon: DollarSign, color: '#10b981', change: '+18%', up: true }
     ];
 
     if (loading) {
@@ -158,10 +207,11 @@ const Dashboard = () => {
                 {statsCards.map((stat, index) => (
                     <motion.div
                         key={stat.label}
-                        className="stat-card"
+                        className={`stat-card ${expandedCard === stat.key ? 'stat-card-active' : ''}`}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
+                        onClick={() => setExpandedCard(expandedCard === stat.key ? null : stat.key)}
                     >
                         <div className="stat-icon" style={{ background: `${stat.color}15`, color: stat.color }}>
                             <stat.icon size={24} />
@@ -174,9 +224,170 @@ const Dashboard = () => {
                                 {stat.change}
                             </span>
                         </div>
+                        <ChevronRight size={16} className={`stat-chevron ${expandedCard === stat.key ? 'rotated' : ''}`} />
                     </motion.div>
                 ))}
             </div>
+
+            {/* Expanded Detail Panel */}
+            {expandedCard && (
+                <motion.div
+                    className="detail-panel"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                >
+                    <div className="detail-panel-header">
+                        <h3>{statsCards.find(s => s.key === expandedCard)?.label} — Details</h3>
+                        <button className="detail-close-btn" onClick={(e) => { e.stopPropagation(); setExpandedCard(null); }}>
+                            <X size={18} />
+                        </button>
+                    </div>
+                    <div className="detail-panel-body">
+                        {getDetailItems(expandedCard).length === 0 ? (
+                            <p className="detail-empty">No items to display</p>
+                        ) : (
+                            <div className="detail-list">
+                                {/* Product-type cards */}
+                                {(expandedCard === 'total-products' || expandedCard === 'available-stock' || expandedCard === 'low-stock' || expandedCard === 'overstock') && (
+                                    <>
+                                        <div className="detail-row detail-row-header">
+                                            <span className="detail-col-img"></span>
+                                            <span className="detail-col-name">Product</span>
+                                            <span className="detail-col-cat">Category</span>
+                                            <span className="detail-col-stock">Total Stock</span>
+                                            <span className="detail-col-price">Brands</span>
+                                        </div>
+                                        {getDetailItems(expandedCard).map((item, i) => (
+                                            <div key={i} className="detail-product-block">
+                                                <div
+                                                    className={`detail-row detail-row-clickable ${expandedProduct === item.id ? 'detail-row-expanded' : ''}`}
+                                                    onClick={() => setExpandedProduct(expandedProduct === item.id ? null : item.id)}
+                                                >
+                                                    <span className="detail-col-img">
+                                                        {item.image ? <img src={item.image} alt={item.name} /> : <Package size={20} />}
+                                                    </span>
+                                                    <span className="detail-col-name">{item.name}</span>
+                                                    <span className="detail-col-cat">{item.category}</span>
+                                                    <span className={`detail-col-stock ${item.stock <= lowStockThreshold ? 'stock-low' : item.stock > overStockThreshold ? 'stock-over' : 'stock-ok'}`}>
+                                                        {item.stock} {item.unit || ''}
+                                                    </span>
+                                                    <span className="detail-col-price detail-brand-count">
+                                                        {item.brands.length > 0 ? `${item.brands.length} brand${item.brands.length > 1 ? 's' : ''}` : 'N/A'}
+                                                        {item.brands.length > 0 && <ChevronDown size={14} className={`brand-chevron ${expandedProduct === item.id ? 'rotated' : ''}`} />}
+                                                    </span>
+                                                </div>
+                                                {expandedProduct === item.id && item.brands.length > 0 && (
+                                                    <div className="brand-detail-panel">
+                                                        {item.brands.map((brand, bi) => (
+                                                            <div key={bi} className="brand-detail-card">
+                                                                <div className="brand-detail-name">{brand.name}</div>
+                                                                <div className="brand-variant-grid">
+                                                                    <div className="brand-variant-header">
+                                                                        <span>Quantity</span>
+                                                                        <span>Price</span>
+                                                                        <span>Stock</span>
+                                                                    </div>
+                                                                    {brand.variants.map((v, vi) => (
+                                                                        <div key={vi} className="brand-variant-row">
+                                                                            <span>{v.label}</span>
+                                                                            <span className="variant-price">₹{v.price}</span>
+                                                                            <span className={`variant-stock ${(v.stock || 0) <= lowStockThreshold ? 'stock-low' : 'stock-ok'}`}>
+                                                                                {v.stock || 0}
+                                                                            </span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
+
+                                {/* Expiry alerts */}
+                                {expandedCard === 'expiry-alerts' && (
+                                    <>
+                                        <div className="detail-row detail-row-header">
+                                            <span className="detail-col-img"></span>
+                                            <span className="detail-col-name">Product</span>
+                                            <span className="detail-col-cat">Category</span>
+                                            <span className="detail-col-stock">Expiry Date</span>
+                                            <span className="detail-col-price">Days Left</span>
+                                        </div>
+                                        {getDetailItems(expandedCard).map((item, i) => (
+                                            <div key={i} className="detail-product-block">
+                                                <div
+                                                    className={`detail-row detail-row-clickable ${expandedProduct === item.id ? 'detail-row-expanded' : ''}`}
+                                                    onClick={() => setExpandedProduct(expandedProduct === item.id ? null : item.id)}
+                                                >
+                                                    <span className="detail-col-img">
+                                                        {item.image ? <img src={item.image} alt={item.name} /> : <Package size={20} />}
+                                                    </span>
+                                                    <span className="detail-col-name">{item.name}</span>
+                                                    <span className="detail-col-cat">{item.category}</span>
+                                                    <span className="detail-col-stock">{item.expiryDate}</span>
+                                                    <span className={`detail-col-price ${item.daysLeft <= 7 ? 'stock-low' : 'stock-warn'}`}>
+                                                        {item.daysLeft} days
+                                                        {item.brands.length > 0 && <ChevronDown size={14} className={`brand-chevron ${expandedProduct === item.id ? 'rotated' : ''}`} />}
+                                                    </span>
+                                                </div>
+                                                {expandedProduct === item.id && item.brands.length > 0 && (
+                                                    <div className="brand-detail-panel">
+                                                        {item.brands.map((brand, bi) => (
+                                                            <div key={bi} className="brand-detail-card">
+                                                                <div className="brand-detail-name">{brand.name}</div>
+                                                                <div className="brand-variant-grid">
+                                                                    <div className="brand-variant-header">
+                                                                        <span>Quantity</span>
+                                                                        <span>Price</span>
+                                                                        <span>Stock</span>
+                                                                    </div>
+                                                                    {brand.variants.map((v, vi) => (
+                                                                        <div key={vi} className="brand-variant-row">
+                                                                            <span>{v.label}</span>
+                                                                            <span className="variant-price">₹{v.price}</span>
+                                                                            <span className={`variant-stock ${(v.stock || 0) <= lowStockThreshold ? 'stock-low' : 'stock-ok'}`}>
+                                                                                {v.stock || 0}
+                                                                            </span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
+
+                                {/* Orders */}
+                                {(expandedCard === 'pending-orders' || expandedCard === 'today-sales') && (
+                                    <>
+                                        <div className="detail-row detail-row-header detail-row-orders">
+                                            <span className="detail-col-name">Customer</span>
+                                            <span className="detail-col-cat">Items</span>
+                                            <span className="detail-col-stock">Total</span>
+                                            <span className="detail-col-price">Status</span>
+                                        </div>
+                                        {getDetailItems(expandedCard).map((item, i) => (
+                                            <div key={i} className="detail-row detail-row-orders">
+                                                <span className="detail-col-name">{item.name}</span>
+                                                <span className="detail-col-cat">{item.items} items</span>
+                                                <span className="detail-col-stock">₹{item.total}</span>
+                                                <span className={`detail-col-price order-badge ${item.status}`}>{item.status}</span>
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+            )}
 
             {/* Charts Row */}
             <div className="charts-row">

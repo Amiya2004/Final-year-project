@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Package, Clock, CheckCircle, Truck, ShoppingBag, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { Package, Clock, CheckCircle, Truck, ShoppingBag, ArrowLeft, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getUserOrders } from '../../services/database';
@@ -67,6 +67,36 @@ const MyOrders = () => {
                     borderColor: '#e2e8f0',
                 };
         }
+    };
+
+    const getTrackingSteps = (order) => {
+        const status = order.status;
+        const createdAt = order.createdAt ? new Date(order.createdAt) : null;
+        const statusMap = { pending: 0, packed: 1, delivered: 2 };
+        const activeStep = statusMap[status] ?? 0;
+
+        const formatDate = (date) =>
+            date
+                ? date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                : '';
+
+        return [
+            {
+                icon: CheckCircle,
+                label: 'Order Confirmed',
+                subtitle: activeStep >= 0 && createdAt ? formatDate(createdAt) : 'Pending',
+            },
+            {
+                icon: Package,
+                label: 'Being Packed',
+                subtitle: activeStep >= 1 ? 'Packed' : 'Processing',
+            },
+            {
+                icon: Truck,
+                label: 'Out for Delivery',
+                subtitle: activeStep >= 2 ? 'Delivered' : 'Estimated 2-3 days',
+            },
+        ].map((step, i) => ({ ...step, completed: i <= activeStep, active: i === activeStep }));
     };
 
     const toggleExpand = (orderId) => {
@@ -190,6 +220,35 @@ const MyOrders = () => {
                                             animate={{ height: 'auto', opacity: 1 }}
                                             transition={{ duration: 0.3 }}
                                         >
+                                            {/* Order Tracking */}
+                                            <div className="order-tracking">
+                                                <div className="tracking-stepper">
+                                                    {getTrackingSteps(order).map((step, i, arr) => {
+                                                        const StepIcon = step.icon;
+                                                        return (
+                                                            <div key={i} className={`tracking-step ${step.completed ? 'completed' : ''} ${step.active ? 'active' : ''}`}>
+                                                                <div className="step-indicator">
+                                                                    <div className="step-circle">
+                                                                        {step.completed ? (
+                                                                            <div className="step-dot" />
+                                                                        ) : (
+                                                                            <div className="step-dot empty" />
+                                                                        )}
+                                                                    </div>
+                                                                    {i < arr.length - 1 && (
+                                                                        <div className={`step-line ${arr[i + 1].completed ? 'completed' : ''}`} />
+                                                                    )}
+                                                                </div>
+                                                                <div className="step-content">
+                                                                    <span className="step-label">{step.label}</span>
+                                                                    <span className="step-subtitle">{step.subtitle}</span>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+
                                             {/* Items */}
                                             <div className="order-items-list">
                                                 {order.items?.map((item, i) => (

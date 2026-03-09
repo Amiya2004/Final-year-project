@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit2, Trash2, Package, Loader } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, Loader, X } from 'lucide-react';
 import { subscribeToProducts, addProduct, updateProduct, deleteProduct } from '../../services/database';
 import { sampleCategories } from '../../data/sampleData';
 import './Products.css';
@@ -11,11 +11,12 @@ const Products = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
+    const emptyVariant = () => ({ label: '', price: '', stock: '' });
+    const emptyBrand = () => ({ name: '', variants: [emptyVariant()] });
     const [formData, setFormData] = useState({
-        name: '', category: '', price: '', stock: '', unit: '',
+        name: '', category: '', unit: '',
         expiryDate: '', image: '', rating: 4.5,
-        brands: ['', '', ''],
-        availableUnits: [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }]
+        brands: [emptyBrand()]
     });
     const [saving, setSaving] = useState(false);
 
@@ -32,25 +33,33 @@ const Products = () => {
     );
 
     const handleOpenAdd = () => {
-        setFormData({ name: '', category: '', price: '', stock: '', unit: '', expiryDate: '', image: '', rating: 4.5, brands: ['', '', ''], availableUnits: [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }] });
+        setFormData({ name: '', category: '', unit: '', expiryDate: '', image: '', rating: 4.5, brands: [emptyBrand()] });
         setShowAddModal(true);
     };
 
     const handleOpenEdit = (product) => {
+        let brands;
+        if (product.brands && product.brands.length > 0 && typeof product.brands[0] === 'object' && product.brands[0].variants) {
+            brands = product.brands.map(b => ({
+                name: b.name || '',
+                variants: (b.variants || []).map(v => ({ label: v.label || '', price: v.price || '', stock: v.stock || '' }))
+            }));
+        } else {
+            const oldNames = (product.brands || []).filter(b => typeof b === 'string' && b.trim());
+            const oldVariants = (product.availableUnits || []).map(u =>
+                typeof u === 'string' ? { label: u, price: '', stock: '' } : { label: u.label || '', price: u.price || '', stock: u.stock || '' }
+            );
+            if (oldNames.length > 0) {
+                brands = oldNames.map(name => ({ name, variants: oldVariants.length > 0 ? oldVariants.map(v => ({ ...v })) : [emptyVariant()] }));
+            } else {
+                brands = [{ name: '', variants: oldVariants.length > 0 ? oldVariants : [emptyVariant()] }];
+            }
+        }
+        if (brands.length === 0) brands = [emptyBrand()];
         setFormData({
-            name: product.name || '',
-            category: product.category || '',
-            price: product.price || '',
-            stock: product.stock || '',
-            unit: product.unit || '',
-            expiryDate: product.expiryDate || '',
-            image: product.image || '',
-            rating: product.rating || 4.5,
-            brands: [...(product.brands || []), '', '', ''].slice(0, 3),
-            availableUnits: [
-                ...(product.availableUnits || []).map(u => typeof u === 'string' ? { label: u, price: '', stock: '' } : { label: u.label || '', price: u.price || '', stock: u.stock || '' }),
-                { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }
-            ].slice(0, 3)
+            name: product.name || '', category: product.category || '', unit: product.unit || '',
+            expiryDate: product.expiryDate || '', image: product.image || '', rating: product.rating || 4.5,
+            brands
         });
         setEditingProduct(product);
     };
@@ -59,18 +68,82 @@ const Products = () => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    const handleAddBrand = () => {
+        setFormData(prev => ({ ...prev, brands: [...prev.brands, emptyBrand()] }));
+    };
+
+    const handleRemoveBrand = (bi) => {
+        setFormData(prev => ({ ...prev, brands: prev.brands.filter((_, i) => i !== bi) }));
+    };
+
+    const handleBrandNameChange = (bi, name) => {
+        setFormData(prev => {
+            const brands = [...prev.brands];
+            brands[bi] = { ...brands[bi], name };
+            return { ...prev, brands };
+        });
+    };
+
+    const handleAddVariant = (bi) => {
+        setFormData(prev => {
+            const brands = [...prev.brands];
+            brands[bi] = { ...brands[bi], variants: [...brands[bi].variants, emptyVariant()] };
+            return { ...prev, brands };
+        });
+    };
+
+    const handleRemoveVariant = (bi, vi) => {
+        setFormData(prev => {
+            const brands = [...prev.brands];
+            brands[bi] = { ...brands[bi], variants: brands[bi].variants.filter((_, i) => i !== vi) };
+            return { ...prev, brands };
+        });
+    };
+
+    const handleVariantChange = (bi, vi, field, value) => {
+        setFormData(prev => {
+            const brands = [...prev.brands];
+            const variants = [...brands[bi].variants];
+            variants[vi] = { ...variants[vi], [field]: value };
+            brands[bi] = { ...brands[bi], variants };
+            return { ...prev, brands };
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
         try {
-            const availableUnits = (formData.availableUnits || []).filter(u => u.label && u.label.trim() !== '').map(u => ({ label: u.label.trim(), price: Number(u.price) || 0, stock: Number(u.stock) || 0 }));
-            const totalStock = availableUnits.reduce((sum, u) => sum + u.stock, 0);
+            const brandsData = formData.brands
+                .filter(b => b.name.trim() !== '')
+                .map(b => ({
+                    name: b.name.trim(),
+                    variants: b.variants
+                        .filter(v => v.label && v.label.trim() !== '')
+                        .map(v => ({ label: v.label.trim(), price: Number(v.price) || 0, stock: Number(v.stock) || 0 }))
+                }));
+
+            const allVariants = brandsData.flatMap(b => b.variants);
+            const totalStock = allVariants.reduce((sum, v) => sum + v.stock, 0);
+            const firstPrice = allVariants.length > 0 ? allVariants[0].price : 0;
+
+            // Deduplicated availableUnits for backward compatibility
+            const seen = new Set();
+            const availableUnits = [];
+            for (const v of allVariants) {
+                if (!seen.has(v.label)) { seen.add(v.label); availableUnits.push(v); }
+            }
+
             const productData = {
-                ...formData,
-                price: availableUnits.length > 0 ? availableUnits[0].price : Number(formData.price),
-                stock: availableUnits.length > 0 ? totalStock : Number(formData.stock),
+                name: formData.name,
+                category: formData.category,
+                unit: formData.unit,
+                expiryDate: formData.expiryDate,
+                image: formData.image,
                 rating: Number(formData.rating),
-                brands: (formData.brands || []).filter(b => b.trim() !== ''),
+                price: firstPrice,
+                stock: totalStock,
+                brands: brandsData,
                 availableUnits
             };
 
@@ -220,45 +293,6 @@ const Products = () => {
                                     </select>
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>Price per Quantity (₹)</label>
-                                <div className="unit-inputs">
-                                    {(formData.availableUnits || [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }]).map((unit, i) => (
-                                        <div key={i} className="unit-row-3col">
-                                            <input
-                                                type="text"
-                                                placeholder={`Quantity ${i + 1} (e.g. 250ml)`}
-                                                value={unit.label || ''}
-                                                onChange={(e) => {
-                                                    const updated = [...(formData.availableUnits || [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }])];
-                                                    updated[i] = { ...updated[i], label: e.target.value };
-                                                    handleFormChange('availableUnits', updated);
-                                                }}
-                                            />
-                                            <input
-                                                type="number"
-                                                placeholder={`Price ₹`}
-                                                value={unit.price || ''}
-                                                onChange={(e) => {
-                                                    const updated = [...(formData.availableUnits || [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }])];
-                                                    updated[i] = { ...updated[i], price: e.target.value };
-                                                    handleFormChange('availableUnits', updated);
-                                                }}
-                                            />
-                                            <input
-                                                type="number"
-                                                placeholder={`Stock`}
-                                                value={unit.stock || ''}
-                                                onChange={(e) => {
-                                                    const updated = [...(formData.availableUnits || [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }])];
-                                                    updated[i] = { ...updated[i], stock: e.target.value };
-                                                    handleFormChange('availableUnits', updated);
-                                                }}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Expiry Date</label>
@@ -278,24 +312,75 @@ const Products = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>Brands</label>
-                                <div className="multi-input-row">
-                                    {(formData.brands || ['', '', '']).map((brand, i) => (
-                                        <input
-                                            key={i}
-                                            type="text"
-                                            placeholder={`Brand ${i + 1}`}
-                                            value={brand}
-                                            onChange={(e) => {
-                                                const updated = [...(formData.brands || ['', '', ''])];
-                                                updated[i] = e.target.value;
-                                                handleFormChange('brands', updated);
-                                            }}
-                                        />
-                                    ))}
+
+                            {/* Brands & Pricing Section */}
+                            <div className="brands-section">
+                                <div className="brands-section-header">
+                                    <h3>Brands & Pricing</h3>
+                                    <button type="button" className="add-brand-btn" onClick={handleAddBrand}>
+                                        <Plus size={16} /> Add Brand
+                                    </button>
                                 </div>
+                                {formData.brands.map((brand, bi) => (
+                                    <div key={bi} className="brand-card">
+                                        <div className="brand-card-header">
+                                            <div className="brand-name-input">
+                                                <span className="brand-number">{bi + 1}</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Brand name (e.g. Amul)"
+                                                    value={brand.name}
+                                                    onChange={(e) => handleBrandNameChange(bi, e.target.value)}
+                                                />
+                                            </div>
+                                            {formData.brands.length > 1 && (
+                                                <button type="button" className="remove-brand-btn" onClick={() => handleRemoveBrand(bi)} title="Remove brand">
+                                                    <Trash2 size={15} />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="variant-labels">
+                                            <span>Quantity</span>
+                                            <span>Price (₹)</span>
+                                            <span>Stock</span>
+                                            <span></span>
+                                        </div>
+                                        <div className="variants-list">
+                                            {brand.variants.map((variant, vi) => (
+                                                <div key={vi} className="variant-row">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="e.g. 250ml"
+                                                        value={variant.label}
+                                                        onChange={(e) => handleVariantChange(bi, vi, 'label', e.target.value)}
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        placeholder="₹ 0"
+                                                        value={variant.price}
+                                                        onChange={(e) => handleVariantChange(bi, vi, 'price', e.target.value)}
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        placeholder="0"
+                                                        value={variant.stock}
+                                                        onChange={(e) => handleVariantChange(bi, vi, 'stock', e.target.value)}
+                                                    />
+                                                    {brand.variants.length > 1 && (
+                                                        <button type="button" className="remove-variant-btn" onClick={() => handleRemoveVariant(bi, vi)} title="Remove variant">
+                                                            <X size={14} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <button type="button" className="add-variant-btn" onClick={() => handleAddVariant(bi)}>
+                                            <Plus size={14} /> Add Variant
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
+
                             <div className="form-group">
                                 <label>Product Image URL</label>
                                 <input

@@ -13,17 +13,40 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
     const [quantity, setQuantity] = useState(1);
     const [added, setAdded] = useState(false);
 
+    // Detect new brand format: [{name, variants}] vs old: ['string']
+    const isNewFormat = product?.brands && product.brands.length > 0 && typeof product.brands[0] === 'object' && product.brands[0].variants;
+
+    const brandNames = isNewFormat
+        ? product.brands.map(b => b.name)
+        : (product?.brands || []);
+
+    const getVariantsForBrand = (brandName) => {
+        if (isNewFormat) {
+            const brand = product.brands.find(b => b.name === brandName);
+            return (brand?.variants || []).map(v => ({ label: v.label, price: v.price, stock: v.stock }));
+        }
+        return (product?.availableUnits || []).map(u =>
+            typeof u === 'string' ? { label: u, price: product.price } : { label: u.label || u, price: (u.price && u.price > 0) ? u.price : product.price }
+        );
+    };
+
     useEffect(() => {
         if (product) {
-            setSelectedBrand(product.brands?.[0] || '');
-            // Set initial unit - normalize to object format with resolved price
-            const firstUnit = product.availableUnits?.[0];
-            if (firstUnit) {
-                const label = firstUnit.label || firstUnit;
-                const price = (firstUnit.price && firstUnit.price > 0) ? firstUnit.price : product.price;
-                setSelectedUnit({ label, price });
+            const firstBrand = brandNames[0] || '';
+            setSelectedBrand(firstBrand);
+            const variants = getVariantsForBrand(firstBrand);
+            if (variants.length > 0) {
+                setSelectedUnit({ label: variants[0].label, price: variants[0].price });
             } else {
-                setSelectedUnit({ label: product.unit || '', price: product.price || 0 });
+                // Fallback to availableUnits if no brands
+                const firstUnit = product.availableUnits?.[0];
+                if (firstUnit) {
+                    const label = firstUnit.label || firstUnit;
+                    const price = (firstUnit.price && firstUnit.price > 0) ? firstUnit.price : product.price;
+                    setSelectedUnit({ label, price });
+                } else {
+                    setSelectedUnit({ label: product.unit || '', price: product.price || 0 });
+                }
             }
             setQuantity(1);
             setAdded(false);
@@ -114,15 +137,21 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
                                 </p>
 
                                 {/* Brand Selection - Only show if brands exist */}
-                                {product.brands && product.brands.length > 0 && (
+                                {brandNames.length > 0 && (
                                     <div className={styles.selectionGroup}>
                                         <label>Select Brand</label>
                                         <div className={styles.optionGrid}>
-                                            {product.brands.map(brand => (
+                                            {brandNames.map(brand => (
                                                 <button
                                                     key={brand}
                                                     className={`${styles.optionBtn} ${selectedBrand === brand ? styles.active : ''}`}
-                                                    onClick={() => setSelectedBrand(brand)}
+                                                    onClick={() => {
+                                                        setSelectedBrand(brand);
+                                                        const variants = getVariantsForBrand(brand);
+                                                        if (variants.length > 0) {
+                                                            setSelectedUnit({ label: variants[0].label, price: variants[0].price });
+                                                        }
+                                                    }}
                                                 >
                                                     {brand}
                                                 </button>
@@ -132,28 +161,32 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
                                 )}
 
                                 {/* Unit/Size Selection */}
-                                {product.availableUnits && product.availableUnits.length > 0 && (
-                                    <div className={styles.selectionGroup}>
-                                        <label>Select Quantity/Unit</label>
-                                        <div className={styles.optionGrid}>
-                                            {product.availableUnits.map((u, index) => {
-                                                const label = u.label || u;
-                                                const unitPrice = (u.price && u.price > 0) ? u.price : product.price;
-                                                const selectedLabel = selectedUnit?.label || selectedUnit;
-                                                const isActive = selectedLabel === label;
-                                                return (
-                                                    <button
-                                                        key={index}
-                                                        className={`${styles.optionBtn} ${isActive ? styles.active : ''}`}
-                                                        onClick={() => setSelectedUnit({ label, price: unitPrice })}
-                                                    >
-                                                        {label} - ₹{unitPrice}
-                                                    </button>
-                                                );
-                                            })}
+                                {(() => {
+                                    const variants = brandNames.length > 0 ? getVariantsForBrand(selectedBrand) : (product.availableUnits || []).map((u) => {
+                                        const label = u.label || u;
+                                        const unitPrice = (u.price && u.price > 0) ? u.price : product.price;
+                                        return { label, price: unitPrice };
+                                    });
+                                    return variants.length > 0 && (
+                                        <div className={styles.selectionGroup}>
+                                            <label>Select Quantity/Unit</label>
+                                            <div className={styles.optionGrid}>
+                                                {variants.map((v, index) => {
+                                                    const isActive = selectedUnit?.label === v.label;
+                                                    return (
+                                                        <button
+                                                            key={index}
+                                                            className={`${styles.optionBtn} ${isActive ? styles.active : ''}`}
+                                                            onClick={() => setSelectedUnit({ label: v.label, price: v.price })}
+                                                        >
+                                                            {v.label} - ₹{v.price}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    );
+                                })()}
 
                                 <div className={styles.quantitySection}>
                                     <label>Quantity</label>

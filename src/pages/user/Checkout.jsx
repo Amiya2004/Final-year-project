@@ -98,6 +98,7 @@ const Checkout = () => {
                 image: String(item.image || ''),
                 category: String(item.category || ''),
                 unit: String(item.unit || ''),
+                brand: String(item.brand || ''),
             })),
             address: {
                 fullName: String(address.fullName || ''),
