@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle, ShoppingBag, ArrowRight, Package, Copy } from 'lucide-react';
+import { CheckCircle, ShoppingBag, ArrowRight, Package, Copy, CreditCard, Wallet, FileText, Hash } from 'lucide-react';
 import { useState } from 'react';
 import './OrderSuccess.css';
 
@@ -44,7 +44,7 @@ const OrderSuccess = () => {
                     <div className="success-icon-ring" />
                     <div className="success-icon-ring ring-2" />
                     <div className="success-icon">
-                        <CheckCircle size={56} />
+                        <CheckCircle size={48} />
                     </div>
                 </motion.div>
 
@@ -53,7 +53,7 @@ const OrderSuccess = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                 >
-                    <h1>Order Placed Successfully! 🎉</h1>
+                    <h1>Order Placed Successfully!</h1>
                     <p className="success-subtitle">
                         Thank you for your purchase. Your order has been confirmed and will be delivered soon.
                     </p>
@@ -66,36 +66,55 @@ const OrderSuccess = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
                 >
-                    <div className="detail-row">
-                        <span className="detail-label">
-                            <Package size={16} />
-                            Order ID
-                        </span>
-                        <span className="detail-value order-id">{orderId}</span>
+                    {/* Order ID & Items Row */}
+                    <div className="od-info-grid">
+                        <div className="od-info-cell">
+                            <div className="od-info-icon">
+                                <Hash size={16} />
+                            </div>
+                            <div>
+                                <span className="od-info-label">Order ID</span>
+                                <span className="od-info-value od-order-id">{orderId}</span>
+                            </div>
+                        </div>
+                        <div className="od-info-cell">
+                            <div className="od-info-icon">
+                                <ShoppingBag size={16} />
+                            </div>
+                            <div>
+                                <span className="od-info-label">Items</span>
+                                <span className="od-info-value">{itemCount} item{itemCount > 1 ? 's' : ''}</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="detail-row">
-                        <span className="detail-label">
-                            <ShoppingBag size={16} />
-                            Items
-                        </span>
-                        <span className="detail-value">{itemCount} items</span>
+                    {/* Amount Highlight */}
+                    <div className="od-amount-card">
+                        <div className="od-amount-left">
+                            <span className="od-amount-label">{isCOD ? 'Amount Due' : 'Amount Paid'}</span>
+                            <span className="od-amount-value">₹{total.toFixed(2)}</span>
+                        </div>
+                        <div className={`od-payment-status ${isCOD ? 'cod' : 'paid'}`}>
+                            {isCOD ? 'Pay on Delivery' : 'Paid'}
+                        </div>
                     </div>
 
-                    <div className="detail-row">
-                        <span className="detail-label">{isCOD ? '💵 Amount Due' : '💰 Amount Paid'}</span>
-                        <span className="detail-value amount">₹{total.toFixed(2)}</span>
-                    </div>
-
-                    <div className="detail-row">
-                        <span className="detail-label">💳 Payment Method</span>
-                        <span className="detail-value">{isCOD ? 'Cash on Delivery' : 'Razorpay (Online)'}</span>
+                    {/* Payment Method */}
+                    <div className="od-detail-row">
+                        <div className="od-detail-left">
+                            <CreditCard size={17} />
+                            <span>Payment Method</span>
+                        </div>
+                        <span className="od-detail-value">{isCOD ? 'Cash on Delivery' : 'Razorpay (Online)'}</span>
                     </div>
 
                     {!isCOD && (
-                        <div className="detail-row payment-id-row">
-                            <span className="detail-label">🔑 Payment ID</span>
-                            <span className="detail-value payment-id">
+                        <div className="od-detail-row">
+                            <div className="od-detail-left">
+                                <Wallet size={17} />
+                                <span>Payment ID</span>
+                            </div>
+                            <span className="od-detail-value od-payment-id">
                                 {paymentId}
                                 <button
                                     className="copy-btn"
@@ -109,9 +128,9 @@ const OrderSuccess = () => {
                     )}
 
                     {isCOD && (
-                        <div className="detail-row cod-note">
-                            <span className="detail-label">📋 Note</span>
-                            <span className="detail-value">Please keep exact change ready at the time of delivery</span>
+                        <div className="od-cod-note">
+                            <FileText size={17} />
+                            <p>Please keep exact change ready at the time of delivery</p>
                         </div>
                     )}
                 </motion.div>

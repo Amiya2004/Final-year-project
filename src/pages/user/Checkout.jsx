@@ -1,14 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     MapPin, Phone, User, Mail, CreditCard, Shield, Truck,
-    ChevronRight, ShoppingBag, CheckCircle, ArrowLeft, Clock, Tag, Banknote
+    ChevronRight, ShoppingBag, CheckCircle, ArrowLeft, Clock, Tag, Banknote, Plus, Trash2
 } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
-import { createOrder } from '../../services/database';
+import { createOrder, getUserAddresses, saveUserAddress, deleteUserAddress } from '../../services/database';
 import { initiateRazorpayPayment, generateOrderId } from '../../services/razorpay';
 import './Checkout.css';
 
@@ -21,6 +21,10 @@ const Checkout = () => {
     const [step, setStep] = useState(1); // 1: Address, 2: Payment
     const [processing, setProcessing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' or 'cod'
+    const [savedAddresses, setSavedAddresses] = useState([]);
+    const [selectedAddressId, setSelectedAddressId] = useState(null);
+    const [showNewForm, setShowNewForm] = useState(false);
+    const [loadingAddresses, setLoadingAddresses] = useState(true);
     const [address, setAddress] = useState({
         fullName: currentUser?.displayName || '',
         phone: '',
@@ -34,6 +38,85 @@ const Checkout = () => {
 
     const deliveryFee = cartTotal >= settings.minOrderForFreeDelivery ? 0 : settings.deliveryFee;
     const finalTotal = cartTotal + deliveryFee;
+
+    useEffect(() => {
+        const loadAddresses = async () => {
+            if (!currentUser) return;
+            try {
+                const addresses = await getUserAddresses(currentUser.uid);
+                setSavedAddresses(addresses);
+                if (addresses.length > 0) {
+                    setSelectedAddressId(addresses[0].id);
+                    const first = addresses[0];
+                    setAddress({
+                        fullName: first.fullName || '',
+                        phone: first.phone || '',
+                        email: first.email || '',
+                        addressLine1: first.addressLine1 || '',
+                        addressLine2: first.addressLine2 || '',
+                        city: first.city || '',
+                        state: first.state || 'Tamil Nadu',
+                        pincode: first.pincode || '',
+                    });
+                } else {
+                    setShowNewForm(true);
+                }
+            } catch (err) {
+                console.error('Error loading addresses:', err);
+                setShowNewForm(true);
+            } finally {
+                setLoadingAddresses(false);
+            }
+        };
+        loadAddresses();
+    }, [currentUser]);
+
+    const selectAddress = (addr) => {
+        setSelectedAddressId(addr.id);
+        setShowNewForm(false);
+        setAddress({
+            fullName: addr.fullName || '',
+            phone: addr.phone || '',
+            email: addr.email || '',
+            addressLine1: addr.addressLine1 || '',
+            addressLine2: addr.addressLine2 || '',
+            city: addr.city || '',
+            state: addr.state || 'Tamil Nadu',
+            pincode: addr.pincode || '',
+        });
+    };
+
+    const startNewAddress = () => {
+        setSelectedAddressId(null);
+        setShowNewForm(true);
+        setAddress({
+            fullName: currentUser?.displayName || '',
+            phone: '',
+            email: currentUser?.email || '',
+            addressLine1: '',
+            addressLine2: '',
+            city: '',
+            state: 'Tamil Nadu',
+            pincode: '',
+        });
+    };
+
+    const handleDeleteAddress = async (addrId) => {
+        try {
+            await deleteUserAddress(currentUser.uid, addrId);
+            const updated = savedAddresses.filter(a => a.id !== addrId);
+            setSavedAddresses(updated);
+            if (selectedAddressId === addrId) {
+                if (updated.length > 0) {
+                    selectAddress(updated[0]);
+                } else {
+                    startNewAddress();
+                }
+            }
+        } catch (err) {
+            console.error('Error deleting address:', err);
+        }
+    };
 
     const handleAddressChange = (e) => {
         setAddress({ ...address, [e.target.name]: e.target.value });
@@ -58,8 +141,29 @@ const Checkout = () => {
         return true;
     };
 
-    const handleProceedToPayment = () => {
+    const handleProceedToPayment = async () => {
         if (validateAddress()) {
+            // Save this address if it's a new one
+            if (showNewForm && currentUser) {
+                try {
+                    const newId = await saveUserAddress(currentUser.uid, {
+                        fullName: address.fullName,
+                        phone: address.phone,
+                        email: address.email,
+                        addressLine1: address.addressLine1,
+                        addressLine2: address.addressLine2,
+                        city: address.city,
+                        state: address.state,
+                        pincode: address.pincode,
+                    });
+                    const newAddr = { id: newId, ...address };
+                    setSavedAddresses(prev => [...prev, newAddr]);
+                    setSelectedAddressId(newId);
+                    setShowNewForm(false);
+                } catch (err) {
+                    console.error('Error saving address:', err);
+                }
+            }
             setStep(2);
         }
     };
@@ -262,109 +366,171 @@ const Checkout = () => {
                                     <h2>Delivery Address</h2>
                                 </div>
 
-                                <div className="checkout-form-grid">
-                                    <div className="checkout-form-group full-width">
-                                        <label>
-                                            <User size={16} />
-                                            Full Name *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="fullName"
-                                            value={address.fullName}
-                                            onChange={handleAddressChange}
-                                            placeholder="Enter your full name"
-                                        />
-                                    </div>
+                                {/* Saved Addresses */}
+                                {!loadingAddresses && savedAddresses.length > 0 && (
+                                    <div className="saved-addresses-section">
+                                        <h3 className="saved-addresses-title">Saved Addresses</h3>
+                                        <div className="saved-addresses-list">
+                                            {savedAddresses.map((addr) => (
+                                                <div
+                                                    key={addr.id}
+                                                    className={`saved-address-card ${selectedAddressId === addr.id && !showNewForm ? 'selected' : ''}`}
+                                                    onClick={() => selectAddress(addr)}
+                                                >
+                                                    <div className="saved-address-radio">
+                                                        <div className="saved-radio-dot" />
+                                                    </div>
+                                                    <div className="saved-address-info">
+                                                        <strong>{addr.fullName}</strong>
+                                                        <p>{addr.addressLine1}{addr.addressLine2 ? `, ${addr.addressLine2}` : ''}</p>
+                                                        <p>{addr.city}, {addr.state} - {addr.pincode}</p>
+                                                        <span className="saved-address-phone"><Phone size={12} /> {addr.phone}</span>
+                                                    </div>
+                                                    <button
+                                                        className="saved-address-delete"
+                                                        onClick={(e) => { e.stopPropagation(); handleDeleteAddress(addr.id); }}
+                                                        title="Delete address"
+                                                    >
+                                                        <Trash2 size={15} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
 
-                                    <div className="checkout-form-group">
-                                        <label>
-                                            <Phone size={16} />
-                                            Phone Number *
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            name="phone"
-                                            value={address.phone}
-                                            onChange={handleAddressChange}
-                                            placeholder="10-digit mobile number"
-                                            maxLength={10}
-                                        />
+                                        {!showNewForm && (
+                                            <button className="add-new-address-btn" onClick={startNewAddress}>
+                                                <Plus size={18} />
+                                                Add New Address
+                                            </button>
+                                        )}
                                     </div>
+                                )}
 
-                                    <div className="checkout-form-group">
-                                        <label>
-                                            <Mail size={16} />
-                                            Email
-                                        </label>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={address.email}
-                                            onChange={handleAddressChange}
-                                            placeholder="your@email.com"
-                                        />
+                                {loadingAddresses && (
+                                    <div className="address-loading">
+                                        <div className="address-loading-spinner" />
+                                        <p>Loading saved addresses...</p>
                                     </div>
+                                )}
 
-                                    <div className="checkout-form-group full-width">
-                                        <label>
-                                            <MapPin size={16} />
-                                            Address Line 1 *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="addressLine1"
-                                            value={address.addressLine1}
-                                            onChange={handleAddressChange}
-                                            placeholder="House/Flat No., Street Name"
-                                        />
-                                    </div>
+                                {/* New Address Form */}
+                                {showNewForm && (
+                                    <div className="new-address-form-wrapper">
+                                        {savedAddresses.length > 0 && (
+                                            <div className="new-address-form-header">
+                                                <h3>New Address</h3>
+                                                <button className="cancel-new-btn" onClick={() => {
+                                                    if (savedAddresses.length > 0) {
+                                                        selectAddress(savedAddresses[0]);
+                                                    }
+                                                }}>Cancel</button>
+                                            </div>
+                                        )}
+                                        <div className="checkout-form-grid">
+                                            <div className="checkout-form-group full-width">
+                                                <label>
+                                                    <User size={16} />
+                                                    Full Name *
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="fullName"
+                                                    value={address.fullName}
+                                                    onChange={handleAddressChange}
+                                                    placeholder="Enter your full name"
+                                                />
+                                            </div>
 
-                                    <div className="checkout-form-group full-width">
-                                        <label>Address Line 2</label>
-                                        <input
-                                            type="text"
-                                            name="addressLine2"
-                                            value={address.addressLine2}
-                                            onChange={handleAddressChange}
-                                            placeholder="Landmark, Area (Optional)"
-                                        />
-                                    </div>
+                                            <div className="checkout-form-group">
+                                                <label>
+                                                    <Phone size={16} />
+                                                    Phone Number *
+                                                </label>
+                                                <input
+                                                    type="tel"
+                                                    name="phone"
+                                                    value={address.phone}
+                                                    onChange={handleAddressChange}
+                                                    placeholder="10-digit mobile number"
+                                                    maxLength={10}
+                                                />
+                                            </div>
 
-                                    <div className="checkout-form-group">
-                                        <label>City *</label>
-                                        <input
-                                            type="text"
-                                            name="city"
-                                            value={address.city}
-                                            onChange={handleAddressChange}
-                                            placeholder="City name"
-                                        />
-                                    </div>
+                                            <div className="checkout-form-group">
+                                                <label>
+                                                    <Mail size={16} />
+                                                    Email
+                                                </label>
+                                                <input
+                                                    type="email"
+                                                    name="email"
+                                                    value={address.email}
+                                                    onChange={handleAddressChange}
+                                                    placeholder="your@email.com"
+                                                />
+                                            </div>
 
-                                    <div className="checkout-form-group">
-                                        <label>State</label>
-                                        <input
-                                            type="text"
-                                            name="state"
-                                            value={address.state}
-                                            onChange={handleAddressChange}
-                                            placeholder="State"
-                                        />
-                                    </div>
+                                            <div className="checkout-form-group full-width">
+                                                <label>
+                                                    <MapPin size={16} />
+                                                    Address Line 1 *
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="addressLine1"
+                                                    value={address.addressLine1}
+                                                    onChange={handleAddressChange}
+                                                    placeholder="House/Flat No., Street Name"
+                                                />
+                                            </div>
 
-                                    <div className="checkout-form-group">
-                                        <label>Pincode *</label>
-                                        <input
-                                            type="text"
-                                            name="pincode"
-                                            value={address.pincode}
-                                            onChange={handleAddressChange}
-                                            placeholder="6-digit pincode"
-                                            maxLength={6}
-                                        />
+                                            <div className="checkout-form-group full-width">
+                                                <label>Address Line 2</label>
+                                                <input
+                                                    type="text"
+                                                    name="addressLine2"
+                                                    value={address.addressLine2}
+                                                    onChange={handleAddressChange}
+                                                    placeholder="Landmark, Area (Optional)"
+                                                />
+                                            </div>
+
+                                            <div className="checkout-form-group">
+                                                <label>City *</label>
+                                                <input
+                                                    type="text"
+                                                    name="city"
+                                                    value={address.city}
+                                                    onChange={handleAddressChange}
+                                                    placeholder="City name"
+                                                />
+                                            </div>
+
+                                            <div className="checkout-form-group">
+                                                <label>State</label>
+                                                <input
+                                                    type="text"
+                                                    name="state"
+                                                    value={address.state}
+                                                    onChange={handleAddressChange}
+                                                    placeholder="State"
+                                                />
+                                            </div>
+
+                                            <div className="checkout-form-group">
+                                                <label>Pincode *</label>
+                                                <input
+                                                    type="text"
+                                                    name="pincode"
+                                                    value={address.pincode}
+                                                    onChange={handleAddressChange}
+                                                    placeholder="6-digit pincode"
+                                                    maxLength={6}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 <button className="checkout-proceed-btn" onClick={handleProceedToPayment}>
                                     Proceed to Payment

@@ -119,6 +119,85 @@
 .odm-status-badge.delivered { background: #dcfce7; color: #16a34a; }
 .odm-status-badge.cancelled { background: #fee2e2; color: #ef4444; }
 
+/* ===== Payment Status Strip ===== */
+.odm-payment-status-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    margin-bottom: 1.75rem;
+    border: 1px solid #f1f5f9;
+}
+
+.odm-payment-info {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.odm-payment-info svg {
+    color: #94a3b8;
+}
+
+.odm-payment-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.odm-payment-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+}
+
+.odm-payment-badge.paid {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.odm-payment-badge.unpaid {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.odm-payment-info .paid ~ svg,
+.odm-payment-info:has(.paid) > svg {
+    color: #16a34a;
+}
+
+.odm-payment-info:has(.unpaid) > svg {
+    color: #d97706;
+}
+
+.odm-mark-paid-btn {
+    padding: 0.45rem 1rem;
+    background: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.odm-mark-paid-btn:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+}
+
+.odm-mark-paid-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* ===== Sections ===== */
 .odm-section {
     margin-bottom: 1.75rem;

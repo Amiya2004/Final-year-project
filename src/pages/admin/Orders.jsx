@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Package, Truck, CheckCircle, Clock, Search, Filter, Eye, MoreVertical, Loader, Trash2 } from 'lucide-react';
-import { subscribeToOrders, updateOrderStatus as updateOrderStatusDB, deleteOrder as deleteOrderDB, getProductById, updateProduct } from '../../services/database';
+import { subscribeToOrders, updateOrderStatus as updateOrderStatusDB, updatePaymentStatus as updatePaymentStatusDB, deleteOrder as deleteOrderDB, getProductById, updateProduct } from '../../services/database';
 import OrderDetailsModal from './OrderDetailsModal';
 import './Orders.css';
 
@@ -322,7 +322,13 @@ const Orders = () => {
             )}
 
             {selectedOrder && (
-                <OrderDetailsModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+                <OrderDetailsModal
+                    order={selectedOrder}
+                    onClose={() => setSelectedOrder(null)}
+                    onUpdatePaymentStatus={async (orderId, status) => {
+                        await updatePaymentStatusDB(orderId, status);
+                    }}
+                />
             )}
         </div>
     );

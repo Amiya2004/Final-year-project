@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Package, Hash, User, MapPin, Phone, Mail, Calendar, DollarSign, ShoppingCart, CreditCard, Tag, Ruler, Store } from 'lucide-react';
+import { X, Package, Hash, User, MapPin, Phone, Mail, Calendar, DollarSign, ShoppingCart, CreditCard, Tag, Ruler, Store, CircleCheck, CircleAlert } from 'lucide-react';
 import './OrderDetailsModal.css';
 
-const OrderDetailsModal = ({ order, onClose }) => {
+const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus }) => {
+    const [paymentStatus, setPaymentStatus] = useState(order?.payment?.status || 'unpaid');
+    const [updatingPayment, setUpdatingPayment] = useState(false);
+
     if (!order) return null;
 
     const formatDate = (date) => {
@@ -50,6 +54,36 @@ const OrderDetailsModal = ({ order, onClose }) => {
                         <div className={`odm-status-badge ${order.status}`}>
                             {order.status}
                         </div>
+                    </div>
+
+                    {/* Payment Status */}
+                    <div className="odm-payment-status-strip">
+                        <div className="odm-payment-info">
+                            {paymentStatus === 'paid' ? <CircleCheck size={18} /> : <CircleAlert size={18} />}
+                            <span className="odm-payment-label">Payment Status</span>
+                            <span className={`odm-payment-badge ${paymentStatus}`}>
+                                {paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                            </span>
+                        </div>
+                        {order.payment?.method === 'cod' && paymentStatus !== 'paid' && (
+                            <button
+                                className="odm-mark-paid-btn"
+                                disabled={updatingPayment}
+                                onClick={async () => {
+                                    setUpdatingPayment(true);
+                                    try {
+                                        await onUpdatePaymentStatus(order.id, 'paid');
+                                        setPaymentStatus('paid');
+                                    } catch (err) {
+                                        console.error('Failed to update payment status:', err);
+                                    } finally {
+                                        setUpdatingPayment(false);
+                                    }
+                                }}
+                            >
+                                {updatingPayment ? 'Updating...' : 'Mark as Paid'}
+                            </button>
+                        )}
                     </div>
 
                     {/* Customer Section */}

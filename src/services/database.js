@@ -74,9 +74,48 @@ export const updateOrderStatus = async (orderId, status) => {
     await update(orderRef, { status, updatedAt: new Date().toISOString() });
 };
 
+export const updatePaymentStatus = async (orderId, paymentStatus) => {
+    const orderRef = ref(database, `orders/${orderId}`);
+    await update(orderRef, { 'payment/status': paymentStatus, updatedAt: new Date().toISOString() });
+};
+
+export const updateOrderAddress = async (orderId, address) => {
+    const orderRef = ref(database, `orders/${orderId}`);
+    await update(orderRef, {
+        address,
+        customerName: address.fullName,
+        customerPhone: address.phone,
+        customerEmail: address.email,
+        updatedAt: new Date().toISOString()
+    });
+};
+
 export const deleteOrder = async (orderId) => {
     const orderRef = ref(database, `orders/${orderId}`);
     await remove(orderRef);
+};
+
+// User Addresses
+export const saveUserAddress = async (userId, addressData) => {
+    const addressesRef = ref(database, `userAddresses/${userId}`);
+    const newRef = push(addressesRef);
+    await set(newRef, { ...addressData, createdAt: new Date().toISOString() });
+    return newRef.key;
+};
+
+export const getUserAddresses = async (userId) => {
+    const addressesRef = ref(database, `userAddresses/${userId}`);
+    const snapshot = await get(addressesRef);
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.keys(data).map(key => ({ id: key, ...data[key] }));
+    }
+    return [];
+};
+
+export const deleteUserAddress = async (userId, addressId) => {
+    const addressRef = ref(database, `userAddresses/${userId}/${addressId}`);
+    await remove(addressRef);
 };
 
 // Categories

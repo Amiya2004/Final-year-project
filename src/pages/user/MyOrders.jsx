@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Package, Clock, CheckCircle, Truck, ShoppingBag, ArrowLeft, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
+import { Package, Clock, CheckCircle, Truck, ShoppingBag, ArrowLeft, ChevronDown, ChevronUp, MapPin, Pencil, X, Save, Ban } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getUserOrders } from '../../services/database';
+import { getUserOrders, updateOrderAddress, updateOrderStatus } from '../../services/database';
 import './MyOrders.css';
 
 const MyOrders = () => {
@@ -11,6 +11,10 @@ const MyOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [expandedOrder, setExpandedOrder] = useState(null);
+    const [editingAddress, setEditingAddress] = useState(null);
+    const [editForm, setEditForm] = useState({});
+    const [savingAddress, setSavingAddress] = useState(false);
+    const [cancellingOrder, setCancellingOrder] = useState(null);
 
     useEffect(() => {
         loadOrders();
@@ -58,6 +62,14 @@ const MyOrders = () => {
                     bg: '#f0fdf4',
                     borderColor: '#bbf7d0',
                 };
+            case 'cancelled':
+                return {
+                    icon: Ban,
+                    label: 'Cancelled',
+                    color: '#ef4444',
+                    bg: '#fef2f2',
+                    borderColor: '#fecaca',
+                };
             default:
                 return {
                     icon: Clock,
@@ -101,6 +113,47 @@ const MyOrders = () => {
 
     const toggleExpand = (orderId) => {
         setExpandedOrder(expandedOrder === orderId ? null : orderId);
+    };
+
+    const startEditAddress = (order) => {
+        setEditingAddress(order.id);
+        setEditForm({ ...order.address });
+    };
+
+    const cancelEditAddress = () => {
+        setEditingAddress(null);
+        setEditForm({});
+    };
+
+    const saveAddress = async (orderId) => {
+        setSavingAddress(true);
+        try {
+            await updateOrderAddress(orderId, editForm);
+            setOrders(prev => prev.map(o =>
+                o.id === orderId ? { ...o, address: { ...editForm }, customerName: editForm.fullName, customerPhone: editForm.phone, customerEmail: editForm.email } : o
+            ));
+            setEditingAddress(null);
+            setEditForm({});
+        } catch (err) {
+            console.error('Failed to update address:', err);
+        } finally {
+            setSavingAddress(false);
+        }
+    };
+
+    const handleCancelOrder = async (orderId) => {
+        if (!window.confirm('Are you sure you want to cancel this order?')) return;
+        setCancellingOrder(orderId);
+        try {
+            await updateOrderStatus(orderId, 'cancelled');
+            setOrders(prev => prev.map(o =>
+                o.id === orderId ? { ...o, status: 'cancelled' } : o
+            ));
+        } catch (err) {
+            console.error('Failed to cancel order:', err);
+        } finally {
+            setCancellingOrder(null);
+        }
     };
 
     if (loading) {
@@ -286,10 +339,94 @@ const MyOrders = () => {
                                             {/* Delivery Address */}
                                             {order.address && (
                                                 <div className="order-address">
-                                                    <strong>📍 Delivery Address</strong>
-                                                    <p>{order.address.fullName}</p>
-                                                    <p>{order.address.addressLine1}{order.address.addressLine2 ? `, ${order.address.addressLine2}` : ''}</p>
-                                                    <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                                    <div className="order-address-header">
+                                                        <strong>📍 Delivery Address</strong>
+                                                        {order.status === 'pending' && editingAddress !== order.id && (
+                                                            <button className="edit-address-btn" onClick={() => startEditAddress(order)}>
+                                                                <Pencil size={14} />
+                                                                Edit
+                                                            </button>
+                                                        )}
+                                                    </div>
+
+                                                    {editingAddress === order.id ? (
+                                                        <div className="edit-address-form">
+                                                            <div className="edit-form-grid">
+                                                                <div className="edit-form-field">
+                                                                    <label>Full Name</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editForm.fullName || ''}
+                                                                        onChange={e => setEditForm({ ...editForm, fullName: e.target.value })}
+                                                                    />
+                                                                </div>
+                                                                <div className="edit-form-field">
+                                                                    <label>Phone</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editForm.phone || ''}
+                                                                        onChange={e => setEditForm({ ...editForm, phone: e.target.value })}
+                                                                    />
+                                                                </div>
+                                                                <div className="edit-form-field full-width">
+                                                                    <label>Address Line 1</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editForm.addressLine1 || ''}
+                                                                        onChange={e => setEditForm({ ...editForm, addressLine1: e.target.value })}
+                                                                    />
+                                                                </div>
+                                                                <div className="edit-form-field full-width">
+                                                                    <label>Address Line 2</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editForm.addressLine2 || ''}
+                                                                        onChange={e => setEditForm({ ...editForm, addressLine2: e.target.value })}
+                                                                    />
+                                                                </div>
+                                                                <div className="edit-form-field">
+                                                                    <label>City</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editForm.city || ''}
+                                                                        onChange={e => setEditForm({ ...editForm, city: e.target.value })}
+                                                                    />
+                                                                </div>
+                                                                <div className="edit-form-field">
+                                                                    <label>State</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editForm.state || ''}
+                                                                        onChange={e => setEditForm({ ...editForm, state: e.target.value })}
+                                                                    />
+                                                                </div>
+                                                                <div className="edit-form-field">
+                                                                    <label>Pincode</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editForm.pincode || ''}
+                                                                        onChange={e => setEditForm({ ...editForm, pincode: e.target.value })}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div className="edit-form-actions">
+                                                                <button className="edit-cancel-btn" onClick={cancelEditAddress}>
+                                                                    <X size={15} />
+                                                                    Cancel
+                                                                </button>
+                                                                <button className="edit-save-btn" onClick={() => saveAddress(order.id)} disabled={savingAddress}>
+                                                                    <Save size={15} />
+                                                                    {savingAddress ? 'Saving...' : 'Save Address'}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <p>{order.address.fullName}</p>
+                                                            <p>{order.address.addressLine1}{order.address.addressLine2 ? `, ${order.address.addressLine2}` : ''}</p>
+                                                            <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                                        </>
+                                                    )}
                                                 </div>
                                             )}
 
@@ -297,10 +434,26 @@ const MyOrders = () => {
                                             {order.payment && (
                                                 <div className="order-payment-info">
                                                     <strong>💳 Payment</strong>
-                                                    <p>Method: Razorpay</p>
-                                                    <p className="payment-id-display">
-                                                        ID: {order.payment.razorpay_payment_id}
-                                                    </p>
+                                                    <p>Method: {order.payment.method === 'cod' ? 'Cash on Delivery' : 'Razorpay'}</p>
+                                                    {order.payment.razorpay_payment_id && (
+                                                        <p className="payment-id-display">
+                                                            ID: {order.payment.razorpay_payment_id}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Cancel Order Button */}
+                                            {order.status === 'pending' && (
+                                                <div className="order-cancel-section">
+                                                    <button
+                                                        className="cancel-order-btn"
+                                                        onClick={() => handleCancelOrder(order.id)}
+                                                        disabled={cancellingOrder === order.id}
+                                                    >
+                                                        <Ban size={16} />
+                                                        {cancellingOrder === order.id ? 'Cancelling...' : 'Cancel Order'}
+                                                    </button>
                                                 </div>
                                             )}
                                         </motion.div>
