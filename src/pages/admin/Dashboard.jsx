@@ -28,10 +28,14 @@ import {
     Legend
 } from 'recharts';
 import { subscribeToProducts, subscribeToOrders, seedProducts } from '../../services/database';
+import { useSettings } from '../../contexts/SettingsContext';
 import { monthlySalesData, categorySalesData, sampleProducts } from '../../data/sampleData';
 import './Dashboard.css';
 
 const Dashboard = () => {
+    const { settings } = useSettings();
+    const lowStockThreshold = settings.lowStockThreshold ?? 10;
+    const overStockThreshold = settings.overStockThreshold ?? 200;
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -81,8 +85,8 @@ const Dashboard = () => {
 
     const totalProducts = products.length;
     const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
-    const lowStockItems = products.filter(p => p.stock <= 10 && p.stock > 0).length;
-    const overstockItems = products.filter(p => p.stock > 200).length;
+    const lowStockItems = products.filter(p => p.stock <= lowStockThreshold && p.stock > 0).length;
+    const overstockItems = products.filter(p => p.stock > overStockThreshold).length;
     const expiryAlertItems = products.filter(p => {
         if (!p.expiryDate) return false;
         const daysUntilExpiry = Math.ceil((new Date(p.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));

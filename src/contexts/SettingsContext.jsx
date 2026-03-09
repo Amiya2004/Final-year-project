@@ -21,6 +21,7 @@ export const SettingsProvider = ({ children }) => {
         minOrderForFreeDelivery: 500,
         maintenanceMode: false,
         lowStockThreshold: 10,
+        overStockThreshold: 200,
         orderNotifications: true,
         // Theme Settings
         theme: 'light',
@@ -37,6 +38,7 @@ export const SettingsProvider = ({ children }) => {
         emailNotifications: true,
         orderConfirmationEmail: true,
         lowStockEmail: true,
+        overStockEmail: true,
         // System Settings
         maxFileUpload: 5,
         autoBackup: true,

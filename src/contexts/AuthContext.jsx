@@ -65,6 +65,52 @@ export const AuthProvider = ({ children }) => {
         return 'customer';
     };
 
+    // One-time admin initialization
+    useEffect(() => {
+        const initAdmin = async () => {
+            const ADMIN_EMAIL = 'velmurgan1623@gmail.com';
+            try {
+                const result = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, 'Amiya2004$');
+                const userRef = ref(database, `users/${result.user.uid}`);
+                const snapshot = await get(userRef);
+                if (!snapshot.exists() || snapshot.val().role !== 'admin') {
+                    await set(userRef, {
+                        email: ADMIN_EMAIL,
+                        name: result.user.displayName || 'Admin',
+                        role: 'admin',
+                        createdAt: new Date().toISOString(),
+                        isSuperAdmin: true
+                    });
+                    console.log('Admin role set successfully!');
+                } else {
+                    console.log('Admin already configured.');
+                }
+                await signOut(auth);
+            } catch (err) {
+                if (err.code === 'auth/user-not-found') {
+                    try {
+                        const result = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, 'Amiya2004$');
+                        await updateProfile(result.user, { displayName: 'Admin' });
+                        await set(ref(database, `users/${result.user.uid}`), {
+                            email: ADMIN_EMAIL,
+                            name: 'Admin',
+                            role: 'admin',
+                            createdAt: new Date().toISOString(),
+                            isSuperAdmin: true
+                        });
+                        console.log('Admin account created successfully!');
+                        await signOut(auth);
+                    } catch (createErr) {
+                        console.error('Failed to create admin:', createErr.message);
+                    }
+                } else {
+                    console.error('Admin init error:', err.message);
+                }
+            }
+        };
+        initAdmin();
+    }, []);
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setCurrentUser(user);

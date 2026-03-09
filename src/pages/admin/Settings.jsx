@@ -43,6 +43,7 @@ const Settings = () => {
         minOrderForFreeDelivery: 0,
         maintenanceMode: false,
         lowStockThreshold: 10,
+        overStockThreshold: 200,
         orderNotifications: true,
         // Theme Settings
         theme: 'light',
@@ -59,6 +60,7 @@ const Settings = () => {
         emailNotifications: true,
         orderConfirmationEmail: true,
         lowStockEmail: true,
+        overStockEmail: true,
         // System Settings
         maxFileUpload: 5,
         autoBackup: true,
@@ -363,6 +365,7 @@ const Settings = () => {
                 minOrderForFreeDelivery: 500,
                 maintenanceMode: false,
                 lowStockThreshold: 10,
+                overStockThreshold: 200,
                 orderNotifications: true,
                 theme: 'light',
                 primaryColor: '#059669',
@@ -376,6 +379,7 @@ const Settings = () => {
                 emailNotifications: true,
                 orderConfirmationEmail: true,
                 lowStockEmail: true,
+                overStockEmail: true,
                 maxFileUpload: 5,
                 autoBackup: true,
                 backupFrequency: 'weekly'
@@ -781,8 +785,20 @@ const Settings = () => {
                                             name="lowStockThreshold"
                                             value={settings.lowStockThreshold}
                                             onChange={handleInputChange}
+                                            min="0"
                                         />
                                         <p className="field-hint">Items with stock below this will trigger a low-stock alert.</p>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Over Stock Threshold</label>
+                                        <input
+                                            type="number"
+                                            name="overStockThreshold"
+                                            value={settings.overStockThreshold}
+                                            onChange={handleInputChange}
+                                            min="0"
+                                        />
+                                        <p className="field-hint">Items with stock above this will trigger an over-stock alert.</p>
                                     </div>
                                     <div className="form-group toggle">
                                         <div className="toggle-info">
@@ -839,6 +855,21 @@ const Settings = () => {
                                                 type="checkbox"
                                                 name="lowStockEmail"
                                                 checked={settings.lowStockEmail}
+                                                onChange={handleInputChange}
+                                            />
+                                            <span className="slider round"></span>
+                                        </label>
+                                    </div>
+                                    <div className="form-group toggle">
+                                        <div className="toggle-info">
+                                            <label>Over Stock Email Alerts</label>
+                                            <p>Send email alerts when products exceed the over-stock threshold.</p>
+                                        </div>
+                                        <label className="switch">
+                                            <input
+                                                type="checkbox"
+                                                name="overStockEmail"
+                                                checked={settings.overStockEmail}
                                                 onChange={handleInputChange}
                                             />
                                             <span className="slider round"></span>

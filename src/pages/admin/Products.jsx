@@ -13,7 +13,9 @@ const Products = () => {
     const [editingProduct, setEditingProduct] = useState(null);
     const [formData, setFormData] = useState({
         name: '', category: '', price: '', stock: '', unit: '',
-        expiryDate: '', image: '', rating: 4.5
+        expiryDate: '', image: '', rating: 4.5,
+        brands: ['', '', ''],
+        availableUnits: [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }]
     });
     const [saving, setSaving] = useState(false);
 
@@ -30,7 +32,7 @@ const Products = () => {
     );
 
     const handleOpenAdd = () => {
-        setFormData({ name: '', category: '', price: '', stock: '', unit: '', expiryDate: '', image: '', rating: 4.5 });
+        setFormData({ name: '', category: '', price: '', stock: '', unit: '', expiryDate: '', image: '', rating: 4.5, brands: ['', '', ''], availableUnits: [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }] });
         setShowAddModal(true);
     };
 
@@ -44,8 +46,11 @@ const Products = () => {
             expiryDate: product.expiryDate || '',
             image: product.image || '',
             rating: product.rating || 4.5,
-            brands: product.brands || [],
-            availableUnits: product.availableUnits || []
+            brands: [...(product.brands || []), '', '', ''].slice(0, 3),
+            availableUnits: [
+                ...(product.availableUnits || []).map(u => typeof u === 'string' ? { label: u, price: '', stock: '' } : { label: u.label || '', price: u.price || '', stock: u.stock || '' }),
+                { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }
+            ].slice(0, 3)
         });
         setEditingProduct(product);
     };
@@ -58,11 +63,15 @@ const Products = () => {
         e.preventDefault();
         setSaving(true);
         try {
+            const availableUnits = (formData.availableUnits || []).filter(u => u.label && u.label.trim() !== '').map(u => ({ label: u.label.trim(), price: Number(u.price) || 0, stock: Number(u.stock) || 0 }));
+            const totalStock = availableUnits.reduce((sum, u) => sum + u.stock, 0);
             const productData = {
                 ...formData,
-                price: Number(formData.price),
-                stock: Number(formData.stock),
-                rating: Number(formData.rating)
+                price: availableUnits.length > 0 ? availableUnits[0].price : Number(formData.price),
+                stock: availableUnits.length > 0 ? totalStock : Number(formData.stock),
+                rating: Number(formData.rating),
+                brands: (formData.brands || []).filter(b => b.trim() !== ''),
+                availableUnits
             };
 
             if (editingProduct) {
@@ -210,26 +219,53 @@ const Products = () => {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="form-group">
-                                    <label>Price (₹)</label>
-                                    <input
-                                        type="number"
-                                        placeholder="Enter price"
-                                        value={formData.price}
-                                        onChange={(e) => handleFormChange('price', e.target.value)}
-                                        required
-                                    />
+                            </div>
+                            <div className="form-group">
+                                <label>Price per Quantity (₹)</label>
+                                <div className="unit-inputs">
+                                    {(formData.availableUnits || [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }]).map((unit, i) => (
+                                        <div key={i} className="unit-row-3col">
+                                            <input
+                                                type="text"
+                                                placeholder={`Quantity ${i + 1} (e.g. 250ml)`}
+                                                value={unit.label || ''}
+                                                onChange={(e) => {
+                                                    const updated = [...(formData.availableUnits || [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }])];
+                                                    updated[i] = { ...updated[i], label: e.target.value };
+                                                    handleFormChange('availableUnits', updated);
+                                                }}
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder={`Price ₹`}
+                                                value={unit.price || ''}
+                                                onChange={(e) => {
+                                                    const updated = [...(formData.availableUnits || [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }])];
+                                                    updated[i] = { ...updated[i], price: e.target.value };
+                                                    handleFormChange('availableUnits', updated);
+                                                }}
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder={`Stock`}
+                                                value={unit.stock || ''}
+                                                onChange={(e) => {
+                                                    const updated = [...(formData.availableUnits || [{ label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }, { label: '', price: '', stock: '' }])];
+                                                    updated[i] = { ...updated[i], stock: e.target.value };
+                                                    handleFormChange('availableUnits', updated);
+                                                }}
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Stock Quantity</label>
+                                    <label>Expiry Date</label>
                                     <input
-                                        type="number"
-                                        placeholder="Enter stock"
-                                        value={formData.stock}
-                                        onChange={(e) => handleFormChange('stock', e.target.value)}
-                                        required
+                                        type="date"
+                                        value={formData.expiryDate}
+                                        onChange={(e) => handleFormChange('expiryDate', e.target.value)}
                                     />
                                 </div>
                                 <div className="form-group">
@@ -241,13 +277,23 @@ const Products = () => {
                                         onChange={(e) => handleFormChange('unit', e.target.value)}
                                     />
                                 </div>
-                                <div className="form-group">
-                                    <label>Expiry Date</label>
-                                    <input
-                                        type="date"
-                                        value={formData.expiryDate}
-                                        onChange={(e) => handleFormChange('expiryDate', e.target.value)}
-                                    />
+                            </div>
+                            <div className="form-group">
+                                <label>Brands</label>
+                                <div className="multi-input-row">
+                                    {(formData.brands || ['', '', '']).map((brand, i) => (
+                                        <input
+                                            key={i}
+                                            type="text"
+                                            placeholder={`Brand ${i + 1}`}
+                                            value={brand}
+                                            onChange={(e) => {
+                                                const updated = [...(formData.brands || ['', '', ''])];
+                                                updated[i] = e.target.value;
+                                                handleFormChange('brands', updated);
+                                            }}
+                                        />
+                                    ))}
                                 </div>
                             </div>
                             <div className="form-group">

@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Filter, Download, AlertTriangle, TrendingDown, TrendingUp, Package, Loader } from 'lucide-react';
 import { subscribeToProducts } from '../../services/database';
+import { useSettings } from '../../contexts/SettingsContext';
 import { sampleCategories } from '../../data/sampleData';
 import './StockManagement.css';
 
 const StockManagement = () => {
+    const { settings } = useSettings();
+    const lowStockThreshold = settings.lowStockThreshold ?? 10;
+    const overStockThreshold = settings.overStockThreshold ?? 200;
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -24,8 +28,8 @@ const StockManagement = () => {
         const daysUntilExpiry = expiryDate ? Math.ceil((new Date(expiryDate) - new Date()) / (1000 * 60 * 60 * 24)) : 999;
 
         if (stock === 0) return { status: 'out-of-stock', label: 'Out of Stock', color: '#dc2626' };
-        if (stock <= 10) return { status: 'low-stock', label: 'Low Stock', color: '#ef4444' };
-        if (stock > 200) return { status: 'overstock', label: 'Overstock', color: '#f59e0b' };
+        if (stock <= lowStockThreshold) return { status: 'low-stock', label: 'Low Stock', color: '#ef4444' };
+        if (stock > overStockThreshold) return { status: 'overstock', label: 'Overstock', color: '#f59e0b' };
         if (daysUntilExpiry <= 30 && daysUntilExpiry > 0) return { status: 'expiring', label: 'Expiring Soon', color: '#f97316' };
         return { status: 'normal', label: 'In Stock', color: '#22c55e' };
     };
@@ -41,8 +45,8 @@ const StockManagement = () => {
 
     const stockStats = {
         total: products.length,
-        lowStock: products.filter(p => p.stock > 0 && p.stock <= 10).length,
-        overstock: products.filter(p => p.stock > 200).length,
+        lowStock: products.filter(p => p.stock > 0 && p.stock <= lowStockThreshold).length,
+        overstock: products.filter(p => p.stock > overStockThreshold).length,
         outOfStock: products.filter(p => p.stock === 0).length,
         expiring: products.filter(p => {
             if (!p.expiryDate) return false;

@@ -16,9 +16,15 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
     useEffect(() => {
         if (product) {
             setSelectedBrand(product.brands?.[0] || '');
-            // Set initial unit - handle both string and object units for backward compatibility
-            const initialUnit = product.availableUnits?.[0] || product.unit;
-            setSelectedUnit(initialUnit);
+            // Set initial unit - normalize to object format with resolved price
+            const firstUnit = product.availableUnits?.[0];
+            if (firstUnit) {
+                const label = firstUnit.label || firstUnit;
+                const price = (firstUnit.price && firstUnit.price > 0) ? firstUnit.price : product.price;
+                setSelectedUnit({ label, price });
+            } else {
+                setSelectedUnit({ label: product.unit || '', price: product.price || 0 });
+            }
             setQuantity(1);
             setAdded(false);
         }
@@ -27,7 +33,7 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
     if (!isOpen || !product) return null;
 
     // Derived price based on selection
-    const currentPrice = selectedUnit?.price || product.price;
+    const currentPrice = (selectedUnit?.price && selectedUnit.price > 0) ? selectedUnit.price : product.price;
     const unitLabel = selectedUnit?.label || selectedUnit || product.unit;
 
     const handleAddToCart = () => {
@@ -132,14 +138,16 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
                                         <div className={styles.optionGrid}>
                                             {product.availableUnits.map((u, index) => {
                                                 const label = u.label || u;
-                                                const isActive = (selectedUnit?.label || selectedUnit) === label;
+                                                const unitPrice = (u.price && u.price > 0) ? u.price : product.price;
+                                                const selectedLabel = selectedUnit?.label || selectedUnit;
+                                                const isActive = selectedLabel === label;
                                                 return (
                                                     <button
                                                         key={index}
                                                         className={`${styles.optionBtn} ${isActive ? styles.active : ''}`}
-                                                        onClick={() => setSelectedUnit(u)}
+                                                        onClick={() => setSelectedUnit({ label, price: unitPrice })}
                                                     >
-                                                        {label}
+                                                        {label} - ₹{unitPrice}
                                                     </button>
                                                 );
                                             })}

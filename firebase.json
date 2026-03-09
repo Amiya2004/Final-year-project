@@ -1,6 +1,6 @@
 {
     "hosting": {
-        "site": "nellai-velumurugan-store",
+        "site": "nellai-velmurgan-stores",
         "public": "dist",
         "ignore": [
             "firebase.json",
