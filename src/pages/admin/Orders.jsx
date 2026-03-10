@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Package, Truck, CheckCircle, Clock, Search, Filter, Eye, MoreVertical, Loader, Trash2 } from 'lucide-react';
+import { Package, Truck, CheckCircle, Clock, Search, Filter, Eye, MoreVertical, Loader, Trash2, Download } from 'lucide-react';
 import { subscribeToOrders, updateOrderStatus as updateOrderStatusDB, updatePaymentStatus as updatePaymentStatusDB, deleteOrder as deleteOrderDB, getProductById, updateProduct } from '../../services/database';
 import OrderDetailsModal from './OrderDetailsModal';
+import { generateInvoice } from '../../utils/generateInvoice';
+import { useSettings } from '../../contexts/SettingsContext';
 import './Orders.css';
 
 const Orders = () => {
+    const { settings } = useSettings();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all');
@@ -280,6 +283,20 @@ const Orders = () => {
                                             <button className="action-btn view" onClick={() => setSelectedOrder(order)}>
                                                 <Eye size={16} />
                                             </button>
+                                            <button
+                                                className="action-btn download"
+                                                title="Download Receipt"
+                                                onClick={() => {
+                                                    try {
+                                                        generateInvoice(order, settings?.storeName, settings?.contactPhone, settings?.contactEmail);
+                                                    } catch (err) {
+                                                        console.error('Receipt generation failed:', err);
+                                                        alert('Failed to generate receipt.');
+                                                    }
+                                                }}
+                                            >
+                                                <Download size={16} />
+                                            </button>
                                             {order.status === 'pending' && (
                                                 <button
                                                     className="action-btn pack"
@@ -328,6 +345,9 @@ const Orders = () => {
                     onUpdatePaymentStatus={async (orderId, status) => {
                         await updatePaymentStatusDB(orderId, status);
                     }}
+                    storeName={settings.storeName}
+                    storePhone={settings.contactPhone}
+                    storeEmail={settings.contactEmail}
                 />
             )}
         </div>

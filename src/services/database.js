@@ -170,7 +170,6 @@ export const getSettings = async () => {
         deliveryFee: 40,
         minOrderForFreeDelivery: 500,
         maintenanceMode: false,
-        lowStockThreshold: 10,
         orderNotifications: true,
         // Theme Settings
         theme: 'light',

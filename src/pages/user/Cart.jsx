@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, CreditCard } from 'lucide-react';
@@ -12,19 +11,9 @@ const Cart = () => {
     const { currentUser } = useAuth();
     const { settings } = useSettings();
     const navigate = useNavigate();
-    const [promoCode, setPromoCode] = useState('');
-    const [discount, setDiscount] = useState(0);
 
     const deliveryFee = cartTotal >= settings.minOrderForFreeDelivery ? 0 : settings.deliveryFee;
-    const finalTotal = cartTotal - discount + deliveryFee;
-
-    const applyPromo = () => {
-        if (promoCode.toLowerCase() === 'fresh10') {
-            setDiscount(cartTotal * 0.1);
-        } else {
-            alert('Invalid promo code');
-        }
-    };
+    const finalTotal = cartTotal + deliveryFee;
 
     const handleCheckout = () => {
         if (!currentUser) {
@@ -119,32 +108,16 @@ const Cart = () => {
                 <div className="cart-summary">
                     <h3>Order Summary</h3>
 
-                    <div className="promo-section">
-                        <input
-                            type="text"
-                            placeholder="Enter promo code"
-                            value={promoCode}
-                            onChange={(e) => setPromoCode(e.target.value)}
-                        />
-                        <button onClick={applyPromo}>Apply</button>
-                    </div>
-
                     <div className="summary-rows">
                         <div className="summary-row">
                             <span>Subtotal</span>
                             <span>₹{cartTotal.toFixed(2)}</span>
                         </div>
-                        {discount > 0 && (
-                            <div className="summary-row discount">
-                                <span>Discount</span>
-                                <span>-₹{discount.toFixed(2)}</span>
-                            </div>
-                        )}
                         <div className="summary-row">
                             <span>Delivery</span>
                             <span>{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}</span>
                         </div>
-                        {cartTotal < settings.minOrderForFreeDelivery && (
+                        {cartTotal < settings.minOrderForFreeDelivery && cartTotal > 0 && (
                             <p className="free-delivery-hint">
                                 Add ₹{(settings.minOrderForFreeDelivery - cartTotal).toFixed(2)} more for free delivery
                             </p>

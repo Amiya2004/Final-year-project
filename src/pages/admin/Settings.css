@@ -508,6 +508,110 @@ input:checked+.slider:before {
     box-shadow: var(--shadow-md);
 }
 
+/* Delivery Configuration Styles */
+.delivery-section {
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    background: var(--slate-50);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--slate-100);
+}
+
+.delivery-section:first-of-type {
+    margin-top: 0.5rem;
+}
+
+.delivery-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.delivery-section-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--slate-800);
+    margin: 0;
+}
+
+.delivery-section-header svg {
+    color: var(--primary-500);
+}
+
+.delivery-section-desc {
+    font-size: 0.8rem;
+    color: var(--slate-500);
+    margin: 0.25rem 0 1.25rem 0;
+    line-height: 1.5;
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon .input-icon {
+    position: absolute;
+    left: 0.85rem;
+    color: var(--slate-400);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.input-with-icon input {
+    padding-left: 2.5rem !important;
+    width: 100%;
+}
+
+/* Delivery Preview Table */
+.delivery-preview-table {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--slate-200);
+    margin-top: 0.75rem;
+}
+
+.preview-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    font-size: 0.875rem;
+    color: var(--slate-700);
+    background: white;
+    border-bottom: 1px solid var(--slate-100);
+}
+
+.preview-row:last-child {
+    border-bottom: none;
+}
+
+.preview-row:nth-child(even) {
+    background: var(--slate-50);
+}
+
+.preview-row.preview-header {
+    background: var(--primary-500);
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.preview-row span:last-child {
+    font-weight: 600;
+    color: var(--primary-600);
+}
+
+.preview-row.preview-header span:last-child {
+    color: white;
+}
+
 /* Business Hours Styles */
 .form-group.full-width {
     grid-column: 1 / -1;

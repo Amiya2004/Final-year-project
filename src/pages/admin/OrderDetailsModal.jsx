@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Package, Hash, User, MapPin, Phone, Mail, Calendar, DollarSign, ShoppingCart, CreditCard, Tag, Ruler, Store, CircleCheck, CircleAlert } from 'lucide-react';
+import { X, Package, Hash, User, MapPin, Phone, Mail, Calendar, DollarSign, ShoppingCart, CreditCard, Tag, Ruler, Store, CircleCheck, CircleAlert, Download } from 'lucide-react';
+import { generateInvoice } from '../../utils/generateInvoice';
 import './OrderDetailsModal.css';
 
-const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus }) => {
+const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus, storeName, storePhone, storeEmail }) => {
     const [paymentStatus, setPaymentStatus] = useState(order?.payment?.status || 'unpaid');
     const [updatingPayment, setUpdatingPayment] = useState(false);
 
@@ -171,6 +172,24 @@ const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus }) => {
                             <span>₹{order.total.toFixed(2)}</span>
                         </div>
                     </section>
+
+                    {/* Download Invoice */}
+                    <div className="odm-invoice-section">
+                        <button
+                            className="odm-download-invoice-btn"
+                            onClick={() => {
+                                try {
+                                    generateInvoice(order, storeName, storePhone, storeEmail);
+                                } catch (err) {
+                                    console.error('Invoice generation failed:', err);
+                                    alert('Failed to generate receipt. Please try again.');
+                                }
+                            }}
+                        >
+                            <Download size={16} />
+                            Download Receipt PDF
+                        </button>
+                    </div>
                 </div>
             </motion.div>
         </div>

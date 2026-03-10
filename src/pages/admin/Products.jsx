@@ -16,6 +16,7 @@ const Products = () => {
     const [formData, setFormData] = useState({
         name: '', category: '', unit: '',
         expiryDate: '', image: '', rating: 4.5,
+        lowStockThreshold: 10, overStockThreshold: 200,
         brands: [emptyBrand()]
     });
     const [saving, setSaving] = useState(false);
@@ -33,7 +34,7 @@ const Products = () => {
     );
 
     const handleOpenAdd = () => {
-        setFormData({ name: '', category: '', unit: '', expiryDate: '', image: '', rating: 4.5, brands: [emptyBrand()] });
+        setFormData({ name: '', category: '', unit: '', expiryDate: '', image: '', rating: 4.5, lowStockThreshold: 10, overStockThreshold: 200, brands: [emptyBrand()] });
         setShowAddModal(true);
     };
 
@@ -59,6 +60,7 @@ const Products = () => {
         setFormData({
             name: product.name || '', category: product.category || '', unit: product.unit || '',
             expiryDate: product.expiryDate || '', image: product.image || '', rating: product.rating || 4.5,
+            lowStockThreshold: product.lowStockThreshold ?? 10, overStockThreshold: product.overStockThreshold ?? 200,
             brands
         });
         setEditingProduct(product);
@@ -143,6 +145,8 @@ const Products = () => {
                 rating: Number(formData.rating),
                 price: firstPrice,
                 stock: totalStock,
+                lowStockThreshold: Number(formData.lowStockThreshold) || 10,
+                overStockThreshold: Number(formData.overStockThreshold) || 200,
                 brands: brandsData,
                 availableUnits
             };
@@ -309,6 +313,28 @@ const Products = () => {
                                         placeholder="e.g. kg, liter, pack"
                                         value={formData.unit}
                                         onChange={(e) => handleFormChange('unit', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Low Stock Threshold</label>
+                                    <input
+                                        type="number"
+                                        placeholder="e.g. 10"
+                                        value={formData.lowStockThreshold}
+                                        onChange={(e) => handleFormChange('lowStockThreshold', e.target.value)}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Over Stock Threshold</label>
+                                    <input
+                                        type="number"
+                                        placeholder="e.g. 200"
+                                        value={formData.overStockThreshold}
+                                        onChange={(e) => handleFormChange('overStockThreshold', e.target.value)}
+                                        min="0"
                                     />
                                 </div>
                             </div>

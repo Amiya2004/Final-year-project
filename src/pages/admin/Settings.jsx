@@ -42,8 +42,6 @@ const Settings = () => {
         deliveryFee: 0,
         minOrderForFreeDelivery: 0,
         maintenanceMode: false,
-        lowStockThreshold: 10,
-        overStockThreshold: 200,
         orderNotifications: true,
         // Theme Settings
         theme: 'light',
@@ -364,8 +362,6 @@ const Settings = () => {
                 deliveryFee: 40,
                 minOrderForFreeDelivery: 500,
                 maintenanceMode: false,
-                lowStockThreshold: 10,
-                overStockThreshold: 200,
                 orderNotifications: true,
                 theme: 'light',
                 primaryColor: '#059669',
@@ -778,28 +774,6 @@ const Settings = () => {
                                     <h2>System Notifications</h2>
                                 </div>
                                 <div className="form-grid">
-                                    <div className="form-group">
-                                        <label>Low Stock Threshold</label>
-                                        <input
-                                            type="number"
-                                            name="lowStockThreshold"
-                                            value={settings.lowStockThreshold}
-                                            onChange={handleInputChange}
-                                            min="0"
-                                        />
-                                        <p className="field-hint">Items with stock below this will trigger a low-stock alert.</p>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Over Stock Threshold</label>
-                                        <input
-                                            type="number"
-                                            name="overStockThreshold"
-                                            value={settings.overStockThreshold}
-                                            onChange={handleInputChange}
-                                            min="0"
-                                        />
-                                        <p className="field-hint">Items with stock above this will trigger an over-stock alert.</p>
-                                    </div>
                                     <div className="form-group toggle">
                                         <div className="toggle-info">
                                             <label>Order Email Notifications</label>

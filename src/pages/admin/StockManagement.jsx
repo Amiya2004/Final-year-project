@@ -8,8 +8,6 @@ import './StockManagement.css';
 
 const StockManagement = () => {
     const { settings } = useSettings();
-    const lowStockThreshold = settings.lowStockThreshold ?? 10;
-    const overStockThreshold = settings.overStockThreshold ?? 200;
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -24,12 +22,22 @@ const StockManagement = () => {
         return () => unsubscribe();
     }, []);
 
-    const getStockStatus = (stock, expiryDate) => {
+    const getStockStatus = (stock, expiryDate, product) => {
         const daysUntilExpiry = expiryDate ? Math.ceil((new Date(expiryDate) - new Date()) / (1000 * 60 * 60 * 24)) : 999;
+        const lowThreshold = product?.lowStockThreshold ?? 10;
+        const overThreshold = product?.overStockThreshold ?? 200;
 
         if (stock === 0) return { status: 'out-of-stock', label: 'Out of Stock', color: '#dc2626' };
-        if (stock <= lowStockThreshold) return { status: 'low-stock', label: 'Low Stock', color: '#ef4444' };
-        if (stock > overStockThreshold) return { status: 'overstock', label: 'Overstock', color: '#f59e0b' };
+        // Check variant-level stock status
+        if (product?.brands?.length > 0 && typeof product.brands[0] === 'object' && product.brands[0].variants) {
+            const hasLowVariant = product.brands.some(b => b.variants.some(v => (v.stock || 0) > 0 && (v.stock || 0) <= lowThreshold));
+            const hasOverVariant = product.brands.some(b => b.variants.some(v => (v.stock || 0) > overThreshold));
+            if (hasLowVariant) return { status: 'low-stock', label: 'Low Stock', color: '#ef4444' };
+            if (hasOverVariant) return { status: 'overstock', label: 'Overstock', color: '#f59e0b' };
+        } else {
+            if (stock <= lowThreshold) return { status: 'low-stock', label: 'Low Stock', color: '#ef4444' };
+            if (stock > overThreshold) return { status: 'overstock', label: 'Overstock', color: '#f59e0b' };
+        }
         if (daysUntilExpiry <= 30 && daysUntilExpiry > 0) return { status: 'expiring', label: 'Expiring Soon', color: '#f97316' };
         return { status: 'normal', label: 'In Stock', color: '#22c55e' };
     };
@@ -37,7 +45,7 @@ const StockManagement = () => {
     const filteredProducts = products.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-        const stockStatus = getStockStatus(product.stock, product.expiryDate).status;
+        const stockStatus = getStockStatus(product.stock, product.expiryDate, product).status;
         const matchesStock = stockFilter === 'all' || stockStatus === stockFilter;
 
         return matchesSearch && matchesCategory && matchesStock;
@@ -45,8 +53,20 @@ const StockManagement = () => {
 
     const stockStats = {
         total: products.length,
-        lowStock: products.filter(p => p.stock > 0 && p.stock <= lowStockThreshold).length,
-        overstock: products.filter(p => p.stock > overStockThreshold).length,
+        lowStock: products.filter(p => {
+            const threshold = p.lowStockThreshold ?? 10;
+            if (p.brands?.length > 0 && typeof p.brands[0] === 'object' && p.brands[0].variants) {
+                return p.brands.some(b => b.variants.some(v => (v.stock || 0) > 0 && (v.stock || 0) <= threshold));
+            }
+            return p.stock > 0 && p.stock <= threshold;
+        }).length,
+        overstock: products.filter(p => {
+            const threshold = p.overStockThreshold ?? 200;
+            if (p.brands?.length > 0 && typeof p.brands[0] === 'object' && p.brands[0].variants) {
+                return p.brands.some(b => b.variants.some(v => (v.stock || 0) > threshold));
+            }
+            return p.stock > threshold;
+        }).length,
         outOfStock: products.filter(p => p.stock === 0).length,
         expiring: products.filter(p => {
             if (!p.expiryDate) return false;
@@ -165,7 +185,7 @@ const StockManagement = () => {
                     </thead>
                     <tbody>
                         {filteredProducts.map((product, index) => {
-                            const stockInfo = getStockStatus(product.stock, product.expiryDate);
+                            const stockInfo = getStockStatus(product.stock, product.expiryDate, product);
                             return (
                                 <motion.tr
                                     key={product.id || product.name}

@@ -37,8 +37,6 @@ import './Dashboard.css';
 
 const Dashboard = () => {
     const { settings } = useSettings();
-    const lowStockThreshold = settings.lowStockThreshold ?? 10;
-    const overStockThreshold = settings.overStockThreshold ?? 200;
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -90,16 +88,30 @@ const Dashboard = () => {
 
     const totalProducts = products.length;
     const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
-    const lowStockItems = products.filter(p => p.stock <= lowStockThreshold && p.stock > 0).length;
-    const overstockItems = products.filter(p => p.stock > overStockThreshold).length;
+    const hasLowStockVariant = (p) => {
+        const threshold = p.lowStockThreshold ?? 10;
+        if (p.brands && p.brands.length > 0 && typeof p.brands[0] === 'object' && p.brands[0].variants) {
+            return p.brands.some(b => b.variants.some(v => (v.stock || 0) > 0 && (v.stock || 0) <= threshold));
+        }
+        return p.stock > 0 && p.stock <= threshold;
+    };
+    const lowStockItems = products.filter(hasLowStockVariant).length;
+    const hasOverStockVariant = (p) => {
+        const threshold = p.overStockThreshold ?? 200;
+        if (p.brands && p.brands.length > 0 && typeof p.brands[0] === 'object' && p.brands[0].variants) {
+            return p.brands.some(b => b.variants.some(v => (v.stock || 0) > threshold));
+        }
+        return p.stock > threshold;
+    };
+    const overstockItems = products.filter(hasOverStockVariant).length;
     const expiryAlertProducts = products.filter(p => {
         if (!p.expiryDate) return false;
         const daysUntilExpiry = Math.ceil((new Date(p.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
         return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
     });
     const expiryAlertItems = expiryAlertProducts.length;
-    const lowStockProducts = products.filter(p => p.stock <= lowStockThreshold && p.stock > 0);
-    const overstockProducts = products.filter(p => p.stock > overStockThreshold);
+    const lowStockProducts = products.filter(hasLowStockVariant);
+    const overstockProducts = products.filter(hasOverStockVariant);
     const pendingOrdersList = orders.filter(o => o.status === 'pending');
     const todayOrdersList = orders;
 
@@ -124,17 +136,17 @@ const Dashboard = () => {
     const getDetailItems = (key) => {
         switch (key) {
             case 'total-products':
-                return products.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, price: p.price, image: p.image, unit: p.unit, brands: getBrands(p) }));
+                return products.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, price: p.price, image: p.image, unit: p.unit, lowStockThreshold: p.lowStockThreshold, overStockThreshold: p.overStockThreshold, brands: getBrands(p) }));
             case 'available-stock':
-                return products.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, unit: p.unit || 'pcs', image: p.image, brands: getBrands(p) }));
+                return products.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, unit: p.unit || 'pcs', image: p.image, lowStockThreshold: p.lowStockThreshold, overStockThreshold: p.overStockThreshold, brands: getBrands(p) }));
             case 'low-stock':
-                return lowStockProducts.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, unit: p.unit || 'pcs', image: p.image, brands: getBrands(p) }));
+                return lowStockProducts.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, unit: p.unit || 'pcs', image: p.image, lowStockThreshold: p.lowStockThreshold, overStockThreshold: p.overStockThreshold, brands: getBrands(p) }));
             case 'overstock':
-                return overstockProducts.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, unit: p.unit || 'pcs', image: p.image, brands: getBrands(p) }));
+                return overstockProducts.map(p => ({ id: p.id, name: p.name, category: p.category, stock: p.stock, unit: p.unit || 'pcs', image: p.image, lowStockThreshold: p.lowStockThreshold, overStockThreshold: p.overStockThreshold, brands: getBrands(p) }));
             case 'expiry-alerts':
                 return expiryAlertProducts.map(p => {
                     const days = Math.ceil((new Date(p.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
-                    return { id: p.id, name: p.name, category: p.category, expiryDate: p.expiryDate, daysLeft: days, image: p.image, brands: getBrands(p) };
+                    return { id: p.id, name: p.name, category: p.category, expiryDate: p.expiryDate, daysLeft: days, image: p.image, lowStockThreshold: p.lowStockThreshold, overStockThreshold: p.overStockThreshold, brands: getBrands(p) };
                 });
             case 'pending-orders':
                 return pendingOrdersList.map(o => ({ name: o.customerName || 'Customer', items: o.items ? o.items.length : 0, total: o.total || 0, status: o.status }));
@@ -269,7 +281,7 @@ const Dashboard = () => {
                                                     </span>
                                                     <span className="detail-col-name">{item.name}</span>
                                                     <span className="detail-col-cat">{item.category}</span>
-                                                    <span className={`detail-col-stock ${item.stock <= lowStockThreshold ? 'stock-low' : item.stock > overStockThreshold ? 'stock-over' : 'stock-ok'}`}>
+                                                    <span className={`detail-col-stock ${item.stock <= (item.lowStockThreshold ?? 10) ? 'stock-low' : item.stock > (item.overStockThreshold ?? 200) ? 'stock-over' : 'stock-ok'}`}>
                                                         {item.stock} {item.unit || ''}
                                                     </span>
                                                     <span className="detail-col-price detail-brand-count">
@@ -279,7 +291,14 @@ const Dashboard = () => {
                                                 </div>
                                                 {expandedProduct === item.id && item.brands.length > 0 && (
                                                     <div className="brand-detail-panel">
-                                                        {item.brands.map((brand, bi) => (
+                                                        {item.brands.map((brand, bi) => {
+                                                            const filteredVariants = expandedCard === 'low-stock'
+                                                                ? brand.variants.filter(v => (v.stock || 0) > 0 && (v.stock || 0) <= (item.lowStockThreshold ?? 10))
+                                                                : expandedCard === 'overstock'
+                                                                    ? brand.variants.filter(v => (v.stock || 0) > (item.overStockThreshold ?? 200))
+                                                                    : brand.variants;
+                                                            if (filteredVariants.length === 0) return null;
+                                                            return (
                                                             <div key={bi} className="brand-detail-card">
                                                                 <div className="brand-detail-name">{brand.name}</div>
                                                                 <div className="brand-variant-grid">
@@ -288,18 +307,19 @@ const Dashboard = () => {
                                                                         <span>Price</span>
                                                                         <span>Stock</span>
                                                                     </div>
-                                                                    {brand.variants.map((v, vi) => (
+                                                                    {filteredVariants.map((v, vi) => (
                                                                         <div key={vi} className="brand-variant-row">
                                                                             <span>{v.label}</span>
                                                                             <span className="variant-price">₹{v.price}</span>
-                                                                            <span className={`variant-stock ${(v.stock || 0) <= lowStockThreshold ? 'stock-low' : 'stock-ok'}`}>
+                                                                            <span className={`variant-stock ${(v.stock || 0) <= (item.lowStockThreshold ?? 10) ? 'stock-low' : (v.stock || 0) > (item.overStockThreshold ?? 200) ? 'stock-over' : 'stock-ok'}`}>
                                                                                 {v.stock || 0}
                                                                             </span>
                                                                         </div>
                                                                     ))}
                                                                 </div>
                                                             </div>
-                                                        ))}
+                                                            );
+                                                        })}
                                                     </div>
                                                 )}
                                             </div>
@@ -349,7 +369,7 @@ const Dashboard = () => {
                                                                         <div key={vi} className="brand-variant-row">
                                                                             <span>{v.label}</span>
                                                                             <span className="variant-price">₹{v.price}</span>
-                                                                            <span className={`variant-stock ${(v.stock || 0) <= lowStockThreshold ? 'stock-low' : 'stock-ok'}`}>
+                                                                            <span className={`variant-stock ${(v.stock || 0) <= (item.lowStockThreshold ?? 10) ? 'stock-low' : (v.stock || 0) > (item.overStockThreshold ?? 200) ? 'stock-over' : 'stock-ok'}`}>
                                                                                 {v.stock || 0}
                                                                             </span>
                                                                         </div>

@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Package, Clock, CheckCircle, Truck, ShoppingBag, ArrowLeft, ChevronDown, ChevronUp, MapPin, Pencil, X, Save, Ban } from 'lucide-react';
+import { Package, Clock, CheckCircle, Truck, ShoppingBag, ArrowLeft, ChevronDown, ChevronUp, MapPin, Pencil, X, Save, Ban, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { getUserOrders, updateOrderAddress, updateOrderStatus } from '../../services/database';
+import { generateInvoice } from '../../utils/generateInvoice';
 import './MyOrders.css';
 
 const MyOrders = () => {
     const { currentUser } = useAuth();
+    const { settings } = useSettings();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [expandedOrder, setExpandedOrder] = useState(null);
@@ -456,6 +459,24 @@ const MyOrders = () => {
                                                     </button>
                                                 </div>
                                             )}
+
+                                            {/* Download Invoice */}
+                                            <div className="order-invoice-section">
+                                                <button
+                                                    className="download-invoice-btn"
+                                                    onClick={() => {
+                                                        try {
+                                                            generateInvoice(order, settings?.storeName, settings?.contactPhone, settings?.contactEmail);
+                                                        } catch (err) {
+                                                            console.error('Invoice generation failed:', err);
+                                                            alert('Failed to generate receipt. Please try again.');
+                                                        }
+                                                    }}
+                                                >
+                                                    <Download size={16} />
+                                                    Download Receipt
+                                                </button>
+                                            </div>
                                         </motion.div>
                                     )}
                                 </motion.div>

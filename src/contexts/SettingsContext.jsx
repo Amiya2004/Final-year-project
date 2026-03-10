@@ -20,8 +20,6 @@ export const SettingsProvider = ({ children }) => {
         deliveryFee: 40,
         minOrderForFreeDelivery: 500,
         maintenanceMode: false,
-        lowStockThreshold: 10,
-        overStockThreshold: 200,
         orderNotifications: true,
         // Theme Settings
         theme: 'light',

@@ -680,6 +680,35 @@
     box-shadow: none;
 }
 
+.order-invoice-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1.5px solid #f1f5f9;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.download-invoice-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.65rem 1.25rem;
+    background: linear-gradient(135deg, #059669, #047857);
+    border: none;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 650;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.download-invoice-btn:hover {
+    background: linear-gradient(135deg, #047857, #065f46);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     .orders-header {

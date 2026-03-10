@@ -322,6 +322,15 @@
     background-color: #dc2626;
 }
 
+.action-btn.download {
+    background-color: #059669;
+    color: white;
+}
+
+.action-btn.download:hover {
+    background-color: #047857;
+}
+
 /* No Orders */
 .no-orders {
     text-align: center;

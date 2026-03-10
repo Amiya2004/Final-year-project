@@ -199,38 +199,65 @@
     border-bottom: 2px solid #f1f5f9;
 }
 
-.promo-section {
-    display: flex;
-    gap: 0.5rem;
+.delivery-distance-section {
     margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
 }
 
-.promo-section input {
+.distance-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.5rem;
+}
+
+.distance-input-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.distance-input-wrapper input {
     flex: 1;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 3rem 0.75rem 1rem;
     border: 2px solid #e2e8f0;
     border-radius: 10px;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    background: white;
+    transition: border-color 0.2s;
 }
 
-.promo-section input:focus {
+.distance-input-wrapper input:focus {
     outline: none;
     border-color: #22c55e;
 }
 
-.promo-section button {
-    padding: 0.75rem 1.25rem;
-    background: #1e293b;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
+.distance-unit {
+    position: absolute;
+    right: 1rem;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
-.promo-section button:hover {
-    background: #0f172a;
+.distance-info {
+    font-size: 0.78rem;
+    color: #059669;
+    margin-top: 0.4rem;
+    font-weight: 500;
+}
+
+.distance-error {
+    font-size: 0.78rem;
+    color: #ef4444;
+    margin-top: 0.4rem;
+    font-weight: 500;
 }
 
 .summary-rows {

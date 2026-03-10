@@ -359,6 +359,53 @@
     font-size: 0.875rem;
 }
 
+.checkout-distance-hint {
+    display: block;
+    font-size: 0.75rem;
+    color: #059669;
+    margin-top: 0.3rem;
+    font-weight: 500;
+}
+
+.checkout-distance-detail {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.checkout-distance-detail span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.checkout-distance-calc-hint {
+    font-size: 0.78rem;
+    color: #059669;
+    margin-top: 0.35rem;
+    font-weight: 500;
+}
+
+.checkout-distance-error-hint {
+    font-size: 0.78rem;
+    color: #ef4444;
+    margin-top: 0.35rem;
+    font-weight: 500;
+}
+
+.checkout-form-full {
+    grid-column: 1 / -1;
+}
+
+.saved-address-distance {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    color: #059669;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
 .checkout-grand-total {
     display: flex;
     justify-content: space-between;
