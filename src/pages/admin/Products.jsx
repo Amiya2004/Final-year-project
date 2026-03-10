@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { Plus, Search, Edit2, Trash2, Package, Loader, X } from 'lucide-react';
 import { subscribeToProducts, addProduct, updateProduct, deleteProduct } from '../../services/database';
 import { sampleCategories } from '../../data/sampleData';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './Products.css';
 
 const Products = () => {
+    const { t } = useLanguage();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -160,7 +162,7 @@ const Products = () => {
             setEditingProduct(null);
         } catch (err) {
             console.error('Error saving product:', err);
-            alert('Failed to save product. Please try again.');
+            alert(t('failedToSaveProduct'));
         }
         setSaving(false);
     };
@@ -171,7 +173,7 @@ const Products = () => {
                 await deleteProduct(product.id);
             } catch (err) {
                 console.error('Error deleting product:', err);
-                alert('Failed to delete product.');
+                alert(t('failedToDeleteProduct'));
             }
         }
     };
@@ -180,7 +182,7 @@ const Products = () => {
         return (
             <div className="products-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
                 <Loader size={32} className="spinning" />
-                <span style={{ marginLeft: '12px' }}>Loading products from database...</span>
+                <span style={{ marginLeft: '12px' }}>{t('loadingProducts')}</span>
             </div>
         );
     }
@@ -189,12 +191,12 @@ const Products = () => {
         <div className="products-page">
             <div className="page-header">
                 <div>
-                    <h1>Products</h1>
-                    <p>Manage your product inventory</p>
+                    <h1>{t('adminProducts')}</h1>
+                    <p>{t('manageProductInventory')}</p>
                 </div>
                 <button className="add-btn" onClick={handleOpenAdd}>
                     <Plus size={20} />
-                    Add Product
+                    {t('addProduct')}
                 </button>
             </div>
 
@@ -202,11 +204,11 @@ const Products = () => {
             <div className="products-stats">
                 <div className="stat-item">
                     <span className="stat-value">{products.length}</span>
-                    <span className="stat-label">Total Products</span>
+                    <span className="stat-label">{t('totalProducts')}</span>
                 </div>
                 <div className="stat-item">
                     <span className="stat-value">{sampleCategories.length}</span>
-                    <span className="stat-label">Categories</span>
+                    <span className="stat-label">{t('categories')}</span>
                 </div>
             </div>
 
@@ -215,7 +217,7 @@ const Products = () => {
                 <Search size={20} />
                 <input
                     type="text"
-                    placeholder="Search products by name..."
+                    placeholder={t('searchProductsByName')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -238,7 +240,7 @@ const Products = () => {
 
                             <div className="product-meta">
                                 <span className="product-price">₹{product.price}</span>
-                                <span className="product-stock">Stock: {product.stock}</span>
+                        <span className="product-stock">{t('stock')}: {product.stock}</span>
                             </div>
                         </div>
                         <div className="product-actions">
@@ -256,8 +258,8 @@ const Products = () => {
             {filteredProducts.length === 0 && !loading && (
                 <div className="no-products">
                     <Package size={48} />
-                    <h3>No products found</h3>
-                    <p>Try adjusting your search or add a new product</p>
+                    <h3>{t('noProductsFound')}</h3>
+                    <p>{t('tryAdjustingSearchOrAdd')}</p>
                 </div>
             )}
 
@@ -270,27 +272,27 @@ const Products = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h2>{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
+                        <h2>{editingProduct ? t('editProduct') : t('addNewProduct')}</h2>
                         <form className="product-form" onSubmit={handleSubmit}>
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Product Name</label>
+                                    <label>{t('productName')}</label>
                                     <input
                                         type="text"
-                                        placeholder="Enter product name"
+                                        placeholder={t('enterProductName')}
                                         value={formData.name}
                                         onChange={(e) => handleFormChange('name', e.target.value)}
                                         required
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Category</label>
+                                    <label>{t('category')}</label>
                                     <select
                                         value={formData.category}
                                         onChange={(e) => handleFormChange('category', e.target.value)}
                                         required
                                     >
-                                        <option value="">Select Category</option>
+                                        <option value="">{t('selectCategory')}</option>
                                         {sampleCategories.map(cat => (
                                             <option key={cat.id} value={cat.id}>{cat.name}</option>
                                         ))}
@@ -299,7 +301,7 @@ const Products = () => {
                             </div>
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Expiry Date</label>
+                                    <label>{t('expiryDate')}</label>
                                     <input
                                         type="date"
                                         value={formData.expiryDate}
@@ -307,7 +309,7 @@ const Products = () => {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Unit</label>
+                                    <label>{t('unit')}</label>
                                     <input
                                         type="text"
                                         placeholder="e.g. kg, liter, pack"
@@ -318,7 +320,7 @@ const Products = () => {
                             </div>
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Low Stock Threshold</label>
+                                    <label>{t('lowStockThreshold')}</label>
                                     <input
                                         type="number"
                                         placeholder="e.g. 10"
@@ -328,7 +330,7 @@ const Products = () => {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Over Stock Threshold</label>
+                                    <label>{t('overStockThreshold')}</label>
                                     <input
                                         type="number"
                                         placeholder="e.g. 200"
@@ -342,9 +344,9 @@ const Products = () => {
                             {/* Brands & Pricing Section */}
                             <div className="brands-section">
                                 <div className="brands-section-header">
-                                    <h3>Brands & Pricing</h3>
+                                    <h3>{t('brandsPricing')}</h3>
                                     <button type="button" className="add-brand-btn" onClick={handleAddBrand}>
-                                        <Plus size={16} /> Add Brand
+                                        <Plus size={16} /> {t('addBrand')}
                                     </button>
                                 </div>
                                 {formData.brands.map((brand, bi) => (
@@ -354,21 +356,21 @@ const Products = () => {
                                                 <span className="brand-number">{bi + 1}</span>
                                                 <input
                                                     type="text"
-                                                    placeholder="Brand name (e.g. Amul)"
+                                                    placeholder={t('brandNamePlaceholder')}
                                                     value={brand.name}
                                                     onChange={(e) => handleBrandNameChange(bi, e.target.value)}
                                                 />
                                             </div>
                                             {formData.brands.length > 1 && (
-                                                <button type="button" className="remove-brand-btn" onClick={() => handleRemoveBrand(bi)} title="Remove brand">
+                                                <button type="button" className="remove-brand-btn" onClick={() => handleRemoveBrand(bi)} title={t('removeBrand')}>
                                                     <Trash2 size={15} />
                                                 </button>
                                             )}
                                         </div>
                                         <div className="variant-labels">
-                                            <span>Quantity</span>
-                                            <span>Price (₹)</span>
-                                            <span>Stock</span>
+                                            <span>{t('quantity')}</span>
+                                            <span>{t('price')} (₹)</span>
+                                            <span>{t('stock')}</span>
                                             <span></span>
                                         </div>
                                         <div className="variants-list">
@@ -393,7 +395,7 @@ const Products = () => {
                                                         onChange={(e) => handleVariantChange(bi, vi, 'stock', e.target.value)}
                                                     />
                                                     {brand.variants.length > 1 && (
-                                                        <button type="button" className="remove-variant-btn" onClick={() => handleRemoveVariant(bi, vi)} title="Remove variant">
+                                                        <button type="button" className="remove-variant-btn" onClick={() => handleRemoveVariant(bi, vi)} title={t('removeVariant')}>
                                                             <X size={14} />
                                                         </button>
                                                     )}
@@ -401,27 +403,27 @@ const Products = () => {
                                             ))}
                                         </div>
                                         <button type="button" className="add-variant-btn" onClick={() => handleAddVariant(bi)}>
-                                            <Plus size={14} /> Add Variant
+                                            <Plus size={14} /> {t('addVariant')}
                                         </button>
                                     </div>
                                 ))}
                             </div>
 
                             <div className="form-group">
-                                <label>Product Image URL</label>
+                                <label>{t('productImageUrl')}</label>
                                 <input
                                     type="url"
-                                    placeholder="Enter image URL"
+                                    placeholder={t('enterImageUrl')}
                                     value={formData.image}
                                     onChange={(e) => handleFormChange('image', e.target.value)}
                                 />
                             </div>
                             <div className="form-actions">
                                 <button type="button" className="cancel-btn" onClick={() => { setShowAddModal(false); setEditingProduct(null); }}>
-                                    Cancel
+                                    {t('cancel')}
                                 </button>
                                 <button type="submit" className="save-btn" disabled={saving}>
-                                    {saving ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}
+                                    {saving ? t('saving') : (editingProduct ? t('updateProduct') : t('addProduct'))}
                                 </button>
                             </div>
                         </form>

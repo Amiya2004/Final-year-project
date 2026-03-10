@@ -2,12 +2,14 @@
 import { ShoppingCart, Trash2, Heart, ArrowRight } from 'lucide-react';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useCart } from '../../contexts/CartContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import './Wishlist.css';
 
 const Wishlist = () => {
     const { wishlist, removeFromWishlist } = useWishlist();
     const { addToCart } = useCart();
+    const { t } = useLanguage();
 
     const handleAddToCart = (product) => {
         addToCart(product);
@@ -18,9 +20,9 @@ const Wishlist = () => {
             <div className="wishlist-header">
                 <div className="wishlist-title-row">
                     <Heart size={28} fill="#ef4444" color="#ef4444" />
-                    <h2>My Wishlist</h2>
+                    <h2>{t('myWishlist')}</h2>
                 </div>
-                <p>You have {wishlist.length} saved item{wishlist.length !== 1 ? 's' : ''}</p>
+                <p>{t('savedItems', { count: wishlist.length, s: wishlist.length !== 1 ? 's' : '' })}</p>
             </div>
 
             {wishlist.length === 0 ? (
@@ -30,10 +32,10 @@ const Wishlist = () => {
                     className="empty-wishlist"
                 >
                     <Heart size={64} color="#cbd5e1" />
-                    <h3>Your wishlist is empty</h3>
-                    <p>Save items you love and buy them later!</p>
+                    <h3>{t('wishlistEmpty')}</h3>
+                    <p>{t('wishlistEmptyMessage')}</p>
                     <Link to="/shop" className="explore-btn">
-                        Explore Products <ArrowRight size={18} />
+                        {t('exploreProducts')} <ArrowRight size={18} />
                     </Link>
                 </motion.div>
             ) : (
@@ -54,7 +56,7 @@ const Wishlist = () => {
                                     <button
                                         className="remove-btn"
                                         onClick={() => removeFromWishlist(product.name)}
-                                        title="Remove from wishlist"
+                                        title={t('removeFromWishlist')}
                                     >
                                         <Trash2 size={16} />
                                     </button>
@@ -69,7 +71,7 @@ const Wishlist = () => {
                                             onClick={() => handleAddToCart(product)}
                                         >
                                             <ShoppingCart size={16} />
-                                            Add to Cart
+                                            {t('addToCart')}
                                         </button>
                                     </div>
                                 </div>

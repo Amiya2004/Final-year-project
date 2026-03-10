@@ -9,6 +9,7 @@ import { WishlistProvider } from './contexts/WishlistContext';
 import { LoadingProvider, useLoading } from './contexts/LoadingContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { ReviewsProvider } from './contexts/ReviewsContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 // Components
 import Loader from './components/common/Loader';
@@ -24,6 +25,7 @@ import MyOrders from './pages/user/MyOrders';
 import About from './pages/user/About';
 import Contact from './pages/user/Contact';
 import Wishlist from './pages/user/Wishlist';
+import UserSettings from './pages/user/UserSettings';
 import Login from './pages/user/Login';
 
 // Admin Pages
@@ -93,6 +95,7 @@ const AppContent = () => {
           <Route path="contact" element={<Contact />} />
           <Route path="orders" element={<MyOrders />} />
           <Route path="wishlist" element={<Wishlist />} />
+          <Route path="settings" element={<UserSettings />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="order-success" element={<OrderSuccess />} />
         </Route>
@@ -131,15 +134,17 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <SettingsProvider>
-          <ReviewsProvider>
-            <WishlistProvider>
-              <CartProvider>
-                <LoadingProvider>
-                  <AppContent />
-                </LoadingProvider>
-              </CartProvider>
-            </WishlistProvider>
-          </ReviewsProvider>
+          <LanguageProvider>
+            <ReviewsProvider>
+              <WishlistProvider>
+                <CartProvider>
+                  <LoadingProvider>
+                    <AppContent />
+                  </LoadingProvider>
+                </CartProvider>
+              </WishlistProvider>
+            </ReviewsProvider>
+          </LanguageProvider>
         </SettingsProvider>
       </AuthProvider>
     </BrowserRouter>

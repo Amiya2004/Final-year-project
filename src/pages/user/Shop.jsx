@@ -6,6 +6,7 @@ import ProductCard from '../../components/user/ProductCard';
 import ProductDetailsModal from '../../components/user/ProductDetailsModal';
 import { subscribeToProducts } from '../../services/database';
 import { sampleCategories } from '../../data/sampleData';
+import { useLanguage } from '../../contexts/LanguageContext';
 import styles from './Shop.module.css';
 
 const Shop = () => {
@@ -19,6 +20,7 @@ const Shop = () => {
     const [sortBy, setSortBy] = useState('name');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
+    const { t } = useLanguage();
 
     // Subscribe to real-time product updates from Firebase
     useEffect(() => {
@@ -68,7 +70,7 @@ const Shop = () => {
         return (
             <div className={styles.shopPage} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
                 <Loader size={32} className="spinning" />
-                <span style={{ marginLeft: '12px' }}>Loading products...</span>
+                <span style={{ marginLeft: '12px' }}>{t('loadingProducts')}</span>
             </div>
         );
     }
@@ -76,21 +78,21 @@ const Shop = () => {
     return (
         <div className={styles.shopPage}>
             <div className={styles.shopHeader}>
-                <h1>Shop Products</h1>
-                <p>Discover fresh groceries and high-quality daily essentials</p>
+                <h1>{t('shopProducts')}</h1>
+                <p>{t('shopSubtitle')}</p>
             </div>
 
             <div className={styles.shopContainer}>
                 <aside className={`${styles.shopSidebar} ${showFilters ? styles.sidebarOpen : ''}`}>
                     <div className={styles.sidebarSection}>
-                        <h3>Categories</h3>
+                        <h3>{t('categories')}</h3>
                         <ul className={styles.filterList}>
                             <li>
                                 <button
                                     className={selectedCategory === 'all' ? styles.filterListActive : ''}
                                     onClick={() => setSelectedCategory('all')}
                                 >
-                                    All Categories
+                                    {t('allCategories')}
                                 </button>
                             </li>
                             {sampleCategories.map(cat => (
@@ -115,7 +117,7 @@ const Shop = () => {
                             <Search size={20} />
                             <input
                                 type="text"
-                                placeholder="Search products..."
+                                placeholder={t('searchProducts')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -127,10 +129,10 @@ const Shop = () => {
                                 onChange={(e) => setSortBy(e.target.value)}
                                 className={styles.sortSelect}
                             >
-                                <option value="name">Sort by Name</option>
-                                <option value="price-low">Price: Low to High</option>
-                                <option value="price-high">Price: High to Low</option>
-                                <option value="rating">Top Rated</option>
+                                <option value="name">{t('sortByName')}</option>
+                                <option value="price-low">{t('priceLowHigh')}</option>
+                                <option value="price-high">{t('priceHighLow')}</option>
+                                <option value="rating">{t('topRated')}</option>
                             </select>
 
                             <button
@@ -138,12 +140,12 @@ const Shop = () => {
                                 onClick={() => setShowFilters(!showFilters)}
                             >
                                 <SlidersHorizontal size={20} />
-                                Filters
+                                {t('filters')}
                             </button>
                         </div>
                     </div>
 
-                    <p className={styles.resultsCount}>{products.length} products found</p>
+                    <p className={styles.resultsCount}>{products.length} {t('productsFound')}</p>
 
                     <div className={styles.productsGrid}>
                         {products.map((product, index) => (
@@ -161,8 +163,8 @@ const Shop = () => {
                     {products.length === 0 && (
                         <div className={styles.noResults}>
                             <span className={styles.noResultsIcon}>🔍</span>
-                            <h3>No products found</h3>
-                            <p>Try adjusting your search or filters</p>
+                            <h3>{t('noProductsFound')}</h3>
+                            <p>{t('tryAdjusting')}</p>
                         </div>
                     )}
                 </main>

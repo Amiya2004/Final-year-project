@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, User, Search, Menu, X, LogOut, Package, Heart } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, LogOut, Package, Heart, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './Header.css';
 
 const Header = () => {
@@ -16,6 +17,7 @@ const Header = () => {
     const { cartCount } = useCart();
     const { wishlistCount } = useWishlist();
     const { settings } = useSettings();
+    const { t } = useLanguage();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -31,10 +33,10 @@ const Header = () => {
     };
 
     const navLinks = [
-        { path: '/', label: 'Home' },
-        { path: '/shop', label: 'Shop by Category' },
-        { path: '/about', label: 'About' },
-        { path: '/contact', label: 'Contact' }
+        { path: '/', label: t('home') },
+        { path: '/shop', label: t('shopByCategory') },
+        { path: '/about', label: t('about') },
+        { path: '/contact', label: t('contact') }
     ];
 
     return (
@@ -49,7 +51,7 @@ const Header = () => {
                     <Search className="search-icon" size={20} />
                     <input
                         type="text"
-                        placeholder="Search for products..."
+                        placeholder={t('searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -102,7 +104,7 @@ const Header = () => {
                                         exit={{ opacity: 0, y: -10 }}
                                     >
                                         <div className="dropdown-header">
-                                            <p className="dropdown-name">{isAdmin ? "Velmurgan Store" : currentUser.displayName || 'User'}</p>
+                                            <p className="dropdown-name">{isAdmin ? "Velmurgan Store" : currentUser.displayName || t('user')}</p>
                                             <p className="dropdown-email">{currentUser.email}</p>
                                         </div>
                                         <div className="dropdown-divider"></div>
@@ -114,18 +116,24 @@ const Header = () => {
                                         )}
                                         <Link to="/orders" className="dropdown-item" onClick={() => setIsProfileOpen(false)}>
                                             <Package size={18} />
-                                            My Orders
+                                            {t('myOrders')}
                                         </Link>
                                         {!isAdmin && (
                                             <Link to="/wishlist" className="dropdown-item" onClick={() => setIsProfileOpen(false)}>
                                                 <Heart size={18} />
-                                                Wishlist
+                                                {t('wishlist')}
+                                            </Link>
+                                        )}
+                                        {!isAdmin && (
+                                            <Link to="/settings" className="dropdown-item" onClick={() => setIsProfileOpen(false)}>
+                                                <Settings size={18} />
+                                                {t('settings')}
                                             </Link>
                                         )}
 
                                         <button className="dropdown-item logout" onClick={handleLogout}>
                                             <LogOut size={18} />
-                                            Logout
+                                            {t('logout')}
                                         </button>
                                     </motion.div>
                                 )}
@@ -133,7 +141,7 @@ const Header = () => {
                         </div>
                     ) : (
                         <Link to="/login" className="login-btn">
-                            Login
+                            {t('login')}
                         </Link>
                     )}
 

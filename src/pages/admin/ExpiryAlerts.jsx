@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Calendar, Trash2, Tag, Package, Clock, Loader } from 'lucide-react';
 import { subscribeToProducts } from '../../services/database';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './ExpiryAlerts.css';
 
 const ExpiryAlerts = () => {
     const [allProducts, setAllProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { t } = useLanguage();
     const today = new Date();
 
     useEffect(() => {
@@ -41,22 +43,22 @@ const ExpiryAlerts = () => {
 
     const getSuggestion = (product) => {
         if (product.expiryInfo.status === 'expired') {
-            return { action: 'Remove from inventory', icon: Trash2, color: '#dc2626' };
+            return { action: t('removeFromInventory'), icon: Trash2, color: '#dc2626' };
         }
         if (product.expiryInfo.status === 'critical') {
-            return { action: 'Apply 50% discount', icon: Tag, color: '#ef4444' };
+            return { action: t('apply50Discount'), icon: Tag, color: '#ef4444' };
         }
         if (product.expiryInfo.status === 'warning') {
-            return { action: 'Apply 30% discount', icon: Tag, color: '#f97316' };
+            return { action: t('apply30Discount'), icon: Tag, color: '#f97316' };
         }
-        return { action: 'Apply 15% discount', icon: Tag, color: '#f59e0b' };
+        return { action: t('apply15Discount'), icon: Tag, color: '#f59e0b' };
     };
 
     if (loading) {
         return (
             <div className="expiry-alerts" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
                 <Loader size={32} className="spinning" />
-                <span style={{ marginLeft: '12px' }}>Loading expiry data...</span>
+                <span style={{ marginLeft: '12px' }}>{t('loadingExpiryData')}</span>
             </div>
         );
     }
@@ -65,8 +67,8 @@ const ExpiryAlerts = () => {
         <div className="expiry-alerts">
             <div className="page-header">
                 <div>
-                    <h1>Expiry & Waste Management</h1>
-                    <p>Track and manage products nearing expiry to reduce waste</p>
+                    <h1>{t('expiryWasteManagement')}</h1>
+                    <p>{t('trackManageExpiry')}</p>
                 </div>
             </div>
 
@@ -80,7 +82,7 @@ const ExpiryAlerts = () => {
                     <AlertTriangle size={28} />
                     <div className="summary-content">
                         <span className="summary-value">{expired.length}</span>
-                        <span className="summary-label">Expired Items</span>
+                        <span className="summary-label">{t('expiredItems')}</span>
                     </div>
                 </motion.div>
 
@@ -93,7 +95,7 @@ const ExpiryAlerts = () => {
                     <Clock size={28} />
                     <div className="summary-content">
                         <span className="summary-value">{critical.length}</span>
-                        <span className="summary-label">Expiring in 7 days</span>
+                        <span className="summary-label">{t('expiringIn7Days')}</span>
                     </div>
                 </motion.div>
 
@@ -106,7 +108,7 @@ const ExpiryAlerts = () => {
                     <Calendar size={28} />
                     <div className="summary-content">
                         <span className="summary-value">{warning.length}</span>
-                        <span className="summary-label">Expiring in 14 days</span>
+                        <span className="summary-label">{t('expiringIn14Days')}</span>
                     </div>
                 </motion.div>
 
@@ -119,7 +121,7 @@ const ExpiryAlerts = () => {
                     <Package size={28} />
                     <div className="summary-content">
                         <span className="summary-value">{caution.length}</span>
-                        <span className="summary-label">Expiring in 30 days</span>
+                        <span className="summary-label">{t('expiringIn30Days')}</span>
                     </div>
                 </motion.div>
             </div>
@@ -129,7 +131,7 @@ const ExpiryAlerts = () => {
                 <div className="expiry-section">
                     <h2 className="section-title expired">
                         <AlertTriangle size={20} />
-                        Expired Products - Remove Immediately
+                        {t('expiredRemoveImmediately')}
                     </h2>
                     <div className="products-grid">
                         {expired.map((product, index) => (
@@ -144,7 +146,7 @@ const ExpiryAlerts = () => {
                 <div className="expiry-section">
                     <h2 className="section-title critical">
                         <Clock size={20} />
-                        Critical - Expiring Within 7 Days
+                        {t('criticalExpiring7')}
                     </h2>
                     <div className="products-grid">
                         {critical.map((product, index) => (
@@ -159,7 +161,7 @@ const ExpiryAlerts = () => {
                 <div className="expiry-section">
                     <h2 className="section-title warning">
                         <Calendar size={20} />
-                        Warning - Expiring Within 14 Days
+                        {t('warningExpiring14')}
                     </h2>
                     <div className="products-grid">
                         {warning.map((product, index) => (
@@ -174,7 +176,7 @@ const ExpiryAlerts = () => {
                 <div className="expiry-section">
                     <h2 className="section-title caution">
                         <Package size={20} />
-                        Caution - Expiring Within 30 Days
+                        {t('cautionExpiring30')}
                     </h2>
                     <div className="products-grid">
                         {caution.map((product, index) => (
@@ -187,8 +189,8 @@ const ExpiryAlerts = () => {
             {expiringProducts.length === 0 && (
                 <div className="no-alerts">
                     <span className="success-icon">✅</span>
-                    <h3>All Clear!</h3>
-                    <p>No products are expiring within the next 30 days.</p>
+                    <h3>{t('allClear')}</h3>
+                    <p>{t('noProductsExpiring')}</p>
                 </div>
             )}
         </div>
@@ -197,6 +199,7 @@ const ExpiryAlerts = () => {
 
 const ProductExpiryCard = ({ product, index, getSuggestion }) => {
     const suggestion = getSuggestion(product);
+    const { t } = useLanguage();
 
     return (
         <motion.div
@@ -215,13 +218,13 @@ const ProductExpiryCard = ({ product, index, getSuggestion }) => {
                         style={{ backgroundColor: `${product.expiryInfo.color}15`, color: product.expiryInfo.color }}
                     >
                         {product.expiryInfo.status === 'expired'
-                            ? `Expired ${product.expiryInfo.days} days ago`
-                            : `${product.expiryInfo.days} days left`
+                            ? t('expiredDaysAgo').replace('{days}', product.expiryInfo.days)
+                            : t('daysLeftLabel').replace('{days}', product.expiryInfo.days)
                         }
                     </span>
                 </div>
                 <div className="stock-price">
-                    <span>Stock: {product.stock} {product.unit}</span>
+                    <span>{t('stockLabel')} {product.stock} {product.unit}</span>
                     <span>₹{product.price}</span>
                 </div>
             </div>

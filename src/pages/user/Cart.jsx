@@ -4,12 +4,14 @@ import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, CreditCard } from 'lucide-
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './Cart.css';
 
 const Cart = () => {
     const { cart, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart();
     const { currentUser } = useAuth();
     const { settings } = useSettings();
+    const { t } = useLanguage();
     const navigate = useNavigate();
 
     const deliveryFee = cartTotal >= settings.minOrderForFreeDelivery ? 0 : settings.deliveryFee;
@@ -32,11 +34,11 @@ const Cart = () => {
                     animate={{ opacity: 1, y: 0 }}
                 >
                     <ShoppingBag size={80} strokeWidth={1} />
-                    <h2>Your cart is empty</h2>
-                    <p>Looks like you haven't added any items to your cart yet.</p>
+                    <h2>{t('yourCartEmpty')}</h2>
+                    <p>{t('cartEmptyMessage')}</p>
                     <Link to="/shop" className="continue-shopping">
                         <ArrowLeft size={20} />
-                        Continue Shopping
+                        {t('continueShopping')}
                     </Link>
                 </motion.div>
             </div>
@@ -46,8 +48,8 @@ const Cart = () => {
     return (
         <div className="cart-page">
             <div className="cart-header">
-                <h1>Shopping Cart</h1>
-                <p>{cart.length} items in your cart</p>
+                <h1>{t('shoppingCart')}</h1>
+                <p>{cart.length} {t('itemsInCart')}</p>
             </div>
 
             <div className="cart-container">
@@ -97,25 +99,25 @@ const Cart = () => {
                     <div className="cart-actions">
                         <Link to="/shop" className="continue-link">
                             <ArrowLeft size={18} />
-                            Continue Shopping
+                            {t('continueShopping')}
                         </Link>
                         <button className="clear-cart" onClick={clearCart}>
-                            Clear Cart
+                            {t('clearCart')}
                         </button>
                     </div>
                 </div>
 
                 <div className="cart-summary">
-                    <h3>Order Summary</h3>
+                    <h3>{t('orderSummary')}</h3>
 
                     <div className="summary-rows">
                         <div className="summary-row">
-                            <span>Subtotal</span>
+                            <span>{t('subtotal')}</span>
                             <span>₹{cartTotal.toFixed(2)}</span>
                         </div>
                         <div className="summary-row">
-                            <span>Delivery</span>
-                            <span>{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}</span>
+                            <span>{t('delivery')}</span>
+                            <span>{deliveryFee === 0 ? t('free') : `₹${deliveryFee}`}</span>
                         </div>
                         {cartTotal < settings.minOrderForFreeDelivery && cartTotal > 0 && (
                             <p className="free-delivery-hint">
@@ -125,17 +127,17 @@ const Cart = () => {
                     </div>
 
                     <div className="summary-total">
-                        <span>Total</span>
+                        <span>{t('total')}</span>
                         <span>₹{finalTotal.toFixed(2)}</span>
                     </div>
 
                     <button className="checkout-btn" onClick={handleCheckout}>
                         <CreditCard size={20} />
-                        Proceed to Checkout
+                        {t('proceedToCheckout')}
                     </button>
 
                     <div className="payment-methods">
-                        <p>We accept</p>
+                        <p>{t('weAccept')}</p>
                         <div className="methods-icons">
                             <span>💳</span>
                             <span>📱</span>

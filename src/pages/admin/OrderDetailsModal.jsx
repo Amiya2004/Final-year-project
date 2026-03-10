@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Package, Hash, User, MapPin, Phone, Mail, Calendar, DollarSign, ShoppingCart, CreditCard, Tag, Ruler, Store, CircleCheck, CircleAlert, Download } from 'lucide-react';
 import { generateInvoice } from '../../utils/generateInvoice';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './OrderDetailsModal.css';
 
 const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus, storeName, storePhone, storeEmail }) => {
     const [paymentStatus, setPaymentStatus] = useState(order?.payment?.status || 'unpaid');
     const [updatingPayment, setUpdatingPayment] = useState(false);
+    const { t } = useLanguage();
 
     if (!order) return null;
 
@@ -35,7 +37,7 @@ const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus, storeName, s
             >
                 <header className="odm-header">
                     <div>
-                        <h2>Order Details</h2>
+                        <h2>{t('orderDetails')}</h2>
                         <span className="odm-order-id">#{order.id.slice(-6).toUpperCase()}</span>
                     </div>
                     <button className="close-btn" onClick={onClose}><X /></button>
@@ -50,7 +52,7 @@ const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus, storeName, s
                         </div>
                         <div className="odm-meta-item">
                             <CreditCard size={16} />
-                            <span>{order.payment?.method === 'cod' ? 'Cash on Delivery' : order.payment?.method || 'N/A'}</span>
+                            <span>{order.payment?.method === 'cod' ? t('cashOnDelivery') : order.payment?.method || 'N/A'}</span>
                         </div>
                         <div className={`odm-status-badge ${order.status}`}>
                             {order.status}
@@ -61,9 +63,9 @@ const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus, storeName, s
                     <div className="odm-payment-status-strip">
                         <div className="odm-payment-info">
                             {paymentStatus === 'paid' ? <CircleCheck size={18} /> : <CircleAlert size={18} />}
-                            <span className="odm-payment-label">Payment Status</span>
+                            <span className="odm-payment-label">{t('paymentStatus')}</span>
                             <span className={`odm-payment-badge ${paymentStatus}`}>
-                                {paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                                {paymentStatus === 'paid' ? t('paid') : t('unpaid')}
                             </span>
                         </div>
                         {order.payment?.method === 'cod' && paymentStatus !== 'paid' && (
@@ -82,40 +84,40 @@ const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus, storeName, s
                                     }
                                 }}
                             >
-                                {updatingPayment ? 'Updating...' : 'Mark as Paid'}
+                                {updatingPayment ? t('updating') : t('markAsPaid')}
                             </button>
                         )}
                     </div>
 
                     {/* Customer Section */}
                     <section className="odm-section">
-                        <h3><User size={18} /> Customer Information</h3>
+                        <h3><User size={18} /> {t('customerInformation')}</h3>
                         <div className="odm-customer-grid">
                             <div className="odm-customer-field">
                                 <User size={15} />
                                 <div>
-                                    <label>Name</label>
+                                    <label>{t('name')}</label>
                                     <p>{order.customerName || 'N/A'}</p>
                                 </div>
                             </div>
                             <div className="odm-customer-field">
                                 <Mail size={15} />
                                 <div>
-                                    <label>Email</label>
+                                    <label>{t('email')}</label>
                                     <p>{order.email || order.customerEmail || 'N/A'}</p>
                                 </div>
                             </div>
                             <div className="odm-customer-field">
                                 <Phone size={15} />
                                 <div>
-                                    <label>Phone</label>
+                                    <label>{t('phone')}</label>
                                     <p>{order.phone || order.customerPhone || 'N/A'}</p>
                                 </div>
                             </div>
                             <div className="odm-customer-field">
                                 <MapPin size={15} />
                                 <div>
-                                    <label>Address</label>
+                                    <label>{t('address')}</label>
                                     <p>{order.address ? `${order.address.addressLine1 || ''}, ${order.address.city || ''}, ${order.address.state || ''} - ${order.address.pincode || ''}` : 'N/A'}</p>
                                 </div>
                             </div>
@@ -124,7 +126,7 @@ const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus, storeName, s
 
                     {/* Order Items Section */}
                     <section className="odm-section">
-                        <h3><ShoppingCart size={18} /> Order Items ({order.items.length})</h3>
+                        <h3><ShoppingCart size={18} /> {t('orderItems')} ({order.items.length})</h3>
                         <div className="odm-items-list">
                             {order.items.map((item, idx) => (
                                 <div key={item.id || idx} className="odm-item-card">
@@ -148,7 +150,7 @@ const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus, storeName, s
                                             )}
                                         </div>
                                         <div className="odm-item-pricing">
-                                            <span className="odm-item-unit-price">₹{item.price.toFixed(2)} each</span>
+                                            <span className="odm-item-unit-price">₹{item.price.toFixed(2)} {t('each')}</span>
                                             <span className="odm-item-qty">x {item.quantity}</span>
                                         </div>
                                     </div>
@@ -160,15 +162,15 @@ const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus, storeName, s
                     {/* Order Summary */}
                     <section className="odm-summary">
                         <div className="odm-summary-row">
-                            <span>Subtotal</span>
+                            <span>{t('subtotal')}</span>
                             <span>₹{subtotal.toFixed(2)}</span>
                         </div>
                         <div className="odm-summary-row">
-                            <span>Delivery Fee</span>
-                            <span>{deliveryFee > 0 ? `₹${deliveryFee.toFixed(2)}` : 'Free'}</span>
+                            <span>{t('deliveryFee')}</span>
+                            <span>{deliveryFee > 0 ? `₹${deliveryFee.toFixed(2)}` : t('free')}</span>
                         </div>
                         <div className="odm-summary-row odm-summary-total">
-                            <span>Total Amount</span>
+                            <span>{t('totalAmount')}</span>
                             <span>₹{order.total.toFixed(2)}</span>
                         </div>
                     </section>
@@ -187,7 +189,7 @@ const OrderDetailsModal = ({ order, onClose, onUpdatePaymentStatus, storeName, s
                             }}
                         >
                             <Download size={16} />
-                            Download Receipt PDF
+                            {t('downloadReceiptPdf')}
                         </button>
                     </div>
                 </div>

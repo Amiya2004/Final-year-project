@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Star, ShoppingCart, Shield, Truck, Clock, Check, Heart } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import styles from './ProductDetailsModal.module.css';
 
 const ProductDetailsModal = ({ product, isOpen, onClose }) => {
     const { addToCart } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
+    const { t } = useLanguage();
     const [selectedBrand, setSelectedBrand] = useState('');
     const [selectedUnit, setSelectedUnit] = useState(null);
     const [quantity, setQuantity] = useState(1);
@@ -101,7 +103,7 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
                                     <button
                                         className={`${styles.wishlistBtn} ${isInWishlist(product.name) ? styles.wishlisted : ''}`}
                                         onClick={() => toggleWishlist(product)}
-                                        title={isInWishlist(product.name) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                                        title={isInWishlist(product.name) ? t('removeFromWishlist') : t('addToWishlist')}
                                     >
                                         <Heart
                                             size={22}
@@ -123,7 +125,7 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
                                             />
                                         ))}
                                     </div>
-                                    <span className={styles.ratingValue}>{product.rating} (50+ reviews)</span>
+                                    <span className={styles.ratingValue}>{product.rating} {t('reviews50')}</span>
                                 </div>
 
                                 <div className={styles.priceSection}>
@@ -139,7 +141,7 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
                                 {/* Brand Selection - Only show if brands exist */}
                                 {brandNames.length > 0 && (
                                     <div className={styles.selectionGroup}>
-                                        <label>Select Brand</label>
+                                        <label>{t('selectBrand')}</label>
                                         <div className={styles.optionGrid}>
                                             {brandNames.map(brand => (
                                                 <button
@@ -169,7 +171,7 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
                                     });
                                     return variants.length > 0 && (
                                         <div className={styles.selectionGroup}>
-                                            <label>Select Quantity/Unit</label>
+                                            <label>{t('selectQuantityUnit')}</label>
                                             <div className={styles.optionGrid}>
                                                 {variants.map((v, index) => {
                                                     const isActive = selectedUnit?.label === v.label;
@@ -189,7 +191,7 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
                                 })()}
 
                                 <div className={styles.quantitySection}>
-                                    <label>Quantity</label>
+                                    <label>{t('quantity')}</label>
                                     <div className={styles.quantityControls}>
                                         <button
                                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -203,11 +205,11 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
                                 <div className={styles.trustBadges}>
                                     <div className={styles.badge}>
                                         <Shield size={18} />
-                                        <span>Quality Guaranteed</span>
+                                        <span>{t('qualityGuaranteed')}</span>
                                     </div>
                                     <div className={styles.badge}>
                                         <Truck size={18} />
-                                        <span>Free Delivery over ₹500</span>
+                                        <span>{t('freeDeliveryOver500')}</span>
                                     </div>
                                 </div>
 
@@ -220,12 +222,12 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
                                     {added ? (
                                         <>
                                             <Check size={20} />
-                                            Added to Cart
+                                            {t('addedToCart')}
                                         </>
                                     ) : (
                                         <>
                                             <ShoppingCart size={20} />
-                                            Add to Cart • ₹{currentPrice * quantity}
+                                            {t('addToCart')} • ₹{currentPrice * quantity}
                                         </>
                                     )}
                                 </motion.button>

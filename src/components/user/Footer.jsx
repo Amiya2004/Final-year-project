@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
     const { settings } = useSettings();
+    const { t } = useLanguage();
     return (
         <footer className="footer">
             <div className="footer-container">
@@ -15,35 +17,35 @@ const Footer = () => {
                             <span className="logo-text">{settings.storeName}</span>
                         </Link>
                         <p className="footer-description">
-                            At our grocery store, we are committed to bringing you the freshest and highest-quality products every day. From farm-fresh vegetables to everyday grocery essentials, we carefully select every item to meet your family’s needs. Our goal is to make grocery shopping simple, reliable, and affordable for everyone.
+                            {t('footerDescription')}
                         </p>
 
                     </div>
 
                     <div className="footer-links">
-                        <h4>Quick Links</h4>
+                        <h4>{t('quickLinks')}</h4>
                         <ul>
-                            <li><Link to="/">Home</Link></li>
-                            <li><Link to="/shop">Shop</Link></li>
-                            <li><Link to="/about">About Us</Link></li>
-                            <li><Link to="/contact">Contact</Link></li>
-                            <li><Link to="/orders">Track Order</Link></li>
+                            <li><Link to="/">{t('home')}</Link></li>
+                            <li><Link to="/shop">{t('shop')}</Link></li>
+                            <li><Link to="/about">{t('aboutUs')}</Link></li>
+                            <li><Link to="/contact">{t('contact')}</Link></li>
+                            <li><Link to="/orders">{t('trackOrder')}</Link></li>
                         </ul>
                     </div>
 
                     <div className="footer-links">
-                        <h4>Categories</h4>
+                        <h4>{t('categories')}</h4>
                         <ul>
-                            <li><Link to="/shop?category=fruits-vegetables">Fruits & Vegetables</Link></li>
-                            <li><Link to="/shop?category=dairy-eggs">Dairy & Eggs</Link></li>
-                            <li><Link to="/shop?category=spices">Spices & Masala</Link></li>
-                            <li><Link to="/shop?category=bakery">Bakery</Link></li>
-                            <li><Link to="/shop?category=beverages">Beverages</Link></li>
+                            <li><Link to="/shop?category=fruits-vegetables">{t('fruitsVegetables')}</Link></li>
+                            <li><Link to="/shop?category=dairy-eggs">{t('dairyEggs')}</Link></li>
+                            <li><Link to="/shop?category=spices">{t('spicesMasala')}</Link></li>
+                            <li><Link to="/shop?category=bakery">{t('bakery')}</Link></li>
+                            <li><Link to="/shop?category=beverages">{t('beverages')}</Link></li>
                         </ul>
                     </div>
 
                     <div className="footer-contact">
-                        <h4>Contact Us</h4>
+                        <h4>{t('contactUs')}</h4>
                         <div className="contact-item">
                             <MapPin size={18} />
                             <span>156, Nellai Velmurgan Store, Sullipalayam, Perundurai-638052</span>
@@ -58,21 +60,21 @@ const Footer = () => {
                         </div>
 
                         <div className="newsletter">
-                            <h5>Subscribe to Newsletter</h5>
+                            <h5>{t('subscribeNewsletter')}</h5>
                             <form className="newsletter-form">
-                                <input type="email" placeholder="Enter your email" />
-                                <button type="submit">Subscribe</button>
+                                <input type="email" placeholder={t('enterEmail')} />
+                                <button type="submit">{t('subscribe')}</button>
                             </form>
                         </div>
                     </div>
                 </div>
 
                 <div className="footer-bottom">
-                    <p>&copy; {new Date().getFullYear()} {settings.storeName}. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} {settings.storeName}. {t('allRightsReserved')}</p>
                     <div className="footer-bottom-links">
-                        <a href="#">Privacy Policy</a>
-                        <a href="#">Terms of Service</a>
-                        <a href="#">Refund Policy</a>
+                        <a href="#">{t('privacyPolicy')}</a>
+                        <a href="#">{t('termsOfService')}</a>
+                        <a href="#">{t('refundPolicy')}</a>
                     </div>
                 </div>
             </div>

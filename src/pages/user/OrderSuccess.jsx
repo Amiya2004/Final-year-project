@@ -2,12 +2,14 @@ import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle, ShoppingBag, ArrowRight, Package, Copy, CreditCard, Wallet, FileText, Hash } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './OrderSuccess.css';
 
 const OrderSuccess = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [copied, setCopied] = useState(false);
+    const { t } = useLanguage();
 
     const orderData = location.state;
 
@@ -53,9 +55,9 @@ const OrderSuccess = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                 >
-                    <h1>Order Placed Successfully!</h1>
+                    <h1>{t('orderPlacedSuccess')}</h1>
                     <p className="success-subtitle">
-                        Thank you for your purchase. Your order has been confirmed and will be delivered soon.
+                        {t('orderSuccessMessage')}
                     </p>
                 </motion.div>
 
@@ -73,7 +75,7 @@ const OrderSuccess = () => {
                                 <Hash size={16} />
                             </div>
                             <div>
-                                <span className="od-info-label">Order ID</span>
+                                <span className="od-info-label">{t('orderId')}</span>
                                 <span className="od-info-value od-order-id">{orderId}</span>
                             </div>
                         </div>
@@ -82,8 +84,8 @@ const OrderSuccess = () => {
                                 <ShoppingBag size={16} />
                             </div>
                             <div>
-                                <span className="od-info-label">Items</span>
-                                <span className="od-info-value">{itemCount} item{itemCount > 1 ? 's' : ''}</span>
+                                <span className="od-info-label">{t('items')}</span>
+                                <span className="od-info-value">{itemCount} {t('items')}</span>
                             </div>
                         </div>
                     </div>
@@ -91,11 +93,11 @@ const OrderSuccess = () => {
                     {/* Amount Highlight */}
                     <div className="od-amount-card">
                         <div className="od-amount-left">
-                            <span className="od-amount-label">{isCOD ? 'Amount Due' : 'Amount Paid'}</span>
+                            <span className="od-amount-label">{isCOD ? t('amountDue') : t('amountPaid')}</span>
                             <span className="od-amount-value">₹{total.toFixed(2)}</span>
                         </div>
                         <div className={`od-payment-status ${isCOD ? 'cod' : 'paid'}`}>
-                            {isCOD ? 'Pay on Delivery' : 'Paid'}
+                            {isCOD ? t('payOnDelivery') : t('paid')}
                         </div>
                     </div>
 
@@ -103,9 +105,9 @@ const OrderSuccess = () => {
                     <div className="od-detail-row">
                         <div className="od-detail-left">
                             <CreditCard size={17} />
-                            <span>Payment Method</span>
+                            <span>{t('paymentMethod')}</span>
                         </div>
-                        <span className="od-detail-value">{isCOD ? 'Cash on Delivery' : 'Razorpay (Online)'}</span>
+                        <span className="od-detail-value">{isCOD ? t('cashOnDelivery') : t('razorpayOnline')}</span>
                     </div>
 
                     {!isCOD && (
@@ -130,7 +132,7 @@ const OrderSuccess = () => {
                     {isCOD && (
                         <div className="od-cod-note">
                             <FileText size={17} />
-                            <p>Please keep exact change ready at the time of delivery</p>
+                            <p>{t('codNote')}</p>
                         </div>
                     )}
                 </motion.div>
@@ -145,24 +147,24 @@ const OrderSuccess = () => {
                     <div className="timeline-step active">
                         <div className="timeline-dot" />
                         <div className="timeline-info">
-                            <strong>Order Confirmed</strong>
-                            <span>Just now</span>
+                            <strong>{t('orderConfirmed')}</strong>
+                            <span>{t('justNow')}</span>
                         </div>
                     </div>
                     <div className="timeline-line" />
                     <div className="timeline-step">
                         <div className="timeline-dot" />
                         <div className="timeline-info">
-                            <strong>Being Packed</strong>
-                            <span>Processing</span>
+                            <strong>{t('beingPacked')}</strong>
+                            <span>{t('processing')}</span>
                         </div>
                     </div>
                     <div className="timeline-line" />
                     <div className="timeline-step">
                         <div className="timeline-dot" />
                         <div className="timeline-info">
-                            <strong>Out for Delivery</strong>
-                            <span>Estimated 2-3 days</span>
+                            <strong>{t('outForDelivery')}</strong>
+                            <span>{t('estimated23Days')}</span>
                         </div>
                     </div>
                 </motion.div>
@@ -176,10 +178,10 @@ const OrderSuccess = () => {
                 >
                     <button className="primary-action" onClick={() => navigate('/orders')}>
                         <Package size={20} />
-                        View My Orders
+                        {t('viewMyOrders')}
                     </button>
                     <button className="secondary-action" onClick={() => navigate('/shop')}>
-                        Continue Shopping
+                        {t('continueShopping')}
                         <ArrowRight size={18} />
                     </button>
                 </motion.div>

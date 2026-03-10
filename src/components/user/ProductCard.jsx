@@ -2,11 +2,13 @@ import { motion } from 'framer-motion';
 import { Star, ShoppingCart, Heart } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import styles from './ProductCard.module.css';
 
 const ProductCard = ({ product, onClick }) => {
     const { addToCart } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
+    const { t } = useLanguage();
 
     const isFavorite = isInWishlist(product.name);
 
@@ -48,14 +50,14 @@ const ProductCard = ({ product, onClick }) => {
                 </button>
 
                 {product.stock <= 10 && product.stock > 0 && (
-                    <span className={`${styles.productBadge} ${styles.lowStock}`}>Low Stock</span>
+                    <span className={`${styles.productBadge} ${styles.lowStock}`}>{t('lowStock')}</span>
                 )}
                 {product.stock === 0 && (
-                    <span className={`${styles.productBadge} ${styles.outOfStock}`}>Out of Stock</span>
+                    <span className={`${styles.productBadge} ${styles.outOfStock}`}>{t('outOfStock')}</span>
                 )}
 
                 <div className={styles.overlay}>
-                    <span>View Details</span>
+                    <span>{t('viewDetails')}</span>
                 </div>
             </div>
 

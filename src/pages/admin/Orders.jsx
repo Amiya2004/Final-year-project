@@ -5,10 +5,12 @@ import { subscribeToOrders, updateOrderStatus as updateOrderStatusDB, updatePaym
 import OrderDetailsModal from './OrderDetailsModal';
 import { generateInvoice } from '../../utils/generateInvoice';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './Orders.css';
 
 const Orders = () => {
     const { settings } = useSettings();
+    const { t } = useLanguage();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all');
@@ -94,7 +96,7 @@ const Orders = () => {
         return (
             <div className="orders-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
                 <Loader size={32} className="spinning" />
-                <span style={{ marginLeft: '12px' }}>Loading orders...</span>
+                <span style={{ marginLeft: '12px' }}>{t('loadingOrders')}</span>
             </div>
         );
     }
@@ -103,8 +105,8 @@ const Orders = () => {
         <div className="orders-page">
             <div className="page-header">
                 <div>
-                    <h1>Orders & Sales</h1>
-                    <p>Manage customer orders and track deliveries</p>
+                    <h1>{t('ordersSales')}</h1>
+                    <p>{t('manageOrders')}</p>
                 </div>
             </div>
 
@@ -120,7 +122,7 @@ const Orders = () => {
                     </div>
                     <div className="stat-info">
                         <span className="stat-value">{orderStats.total}</span>
-                        <span className="stat-label">Total Orders</span>
+                        <span className="stat-label">{t('totalOrders')}</span>
                     </div>
                 </motion.div>
 
@@ -135,7 +137,7 @@ const Orders = () => {
                     </div>
                     <div className="stat-info">
                         <span className="stat-value">{orderStats.pending}</span>
-                        <span className="stat-label">Pending</span>
+                        <span className="stat-label">{t('pending')}</span>
                     </div>
                 </motion.div>
 
@@ -150,7 +152,7 @@ const Orders = () => {
                     </div>
                     <div className="stat-info">
                         <span className="stat-value">{orderStats.packed}</span>
-                        <span className="stat-label">Packed</span>
+                        <span className="stat-label">{t('packed')}</span>
                     </div>
                 </motion.div>
 
@@ -165,7 +167,7 @@ const Orders = () => {
                     </div>
                     <div className="stat-info">
                         <span className="stat-value">{orderStats.delivered}</span>
-                        <span className="stat-label">Delivered</span>
+                        <span className="stat-label">{t('delivered')}</span>
                     </div>
                 </motion.div>
             </div>
@@ -176,7 +178,7 @@ const Orders = () => {
                     <Search size={20} />
                     <input
                         type="text"
-                        placeholder="Search by customer, order ID, or item..."
+                        placeholder={t('searchOrders')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -187,25 +189,25 @@ const Orders = () => {
                         className={statusFilter === 'all' ? 'active' : ''}
                         onClick={() => setStatusFilter('all')}
                     >
-                        All
+                        {t('all')}
                     </button>
                     <button
                         className={statusFilter === 'pending' ? 'active' : ''}
                         onClick={() => setStatusFilter('pending')}
                     >
-                        Pending
+                        {t('pending')}
                     </button>
                     <button
                         className={statusFilter === 'packed' ? 'active' : ''}
                         onClick={() => setStatusFilter('packed')}
                     >
-                        Packed
+                        {t('packed')}
                     </button>
                     <button
                         className={statusFilter === 'delivered' ? 'active' : ''}
                         onClick={() => setStatusFilter('delivered')}
                     >
-                        Delivered
+                        {t('delivered')}
                     </button>
                 </div>
             </div>
@@ -219,13 +221,13 @@ const Orders = () => {
                 <table className="orders-table">
                     <thead>
                         <tr>
-                            <th>Order</th>
-                            <th>Customer</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Actions</th>
+                            <th>{t('order')}</th>
+                            <th>{t('customer')}</th>
+                            <th>{t('items')}</th>
+                            <th>{t('total')}</th>
+                            <th>{t('status')}</th>
+                            <th>{t('date')}</th>
+                            <th>{t('actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -259,7 +261,7 @@ const Orders = () => {
                                                 <span key={i} className="item-tag">{item.name}</span>
                                             ))}
                                             {(order.items || []).length > 2 && (
-                                                <span className="more-items">+{order.items.length - 2} more</span>
+                                                <span className="more-items">+{order.items.length - 2} {t('items').toLowerCase()}</span>
                                             )}
                                         </div>
                                     </td>
@@ -283,26 +285,28 @@ const Orders = () => {
                                             <button className="action-btn view" onClick={() => setSelectedOrder(order)}>
                                                 <Eye size={16} />
                                             </button>
-                                            <button
-                                                className="action-btn download"
-                                                title="Download Receipt"
-                                                onClick={() => {
-                                                    try {
-                                                        generateInvoice(order, settings?.storeName, settings?.contactPhone, settings?.contactEmail);
-                                                    } catch (err) {
-                                                        console.error('Receipt generation failed:', err);
-                                                        alert('Failed to generate receipt.');
-                                                    }
-                                                }}
-                                            >
-                                                <Download size={16} />
-                                            </button>
+                                            {(order.status === 'packed' || order.status === 'delivered') && (
+                                                <button
+                                                    className="action-btn download"
+                                                    title={t('downloadReceipt')}
+                                                    onClick={() => {
+                                                        try {
+                                                            generateInvoice(order, settings?.storeName, settings?.contactPhone, settings?.contactEmail);
+                                                        } catch (err) {
+                                                            console.error('Receipt generation failed:', err);
+                                                            alert('Failed to generate receipt.');
+                                                        }
+                                                    }}
+                                                >
+                                                    <Download size={16} />
+                                                </button>
+                                            )}
                                             {order.status === 'pending' && (
                                                 <button
                                                     className="action-btn pack"
                                                     onClick={() => handleUpdateStatus(order, 'packed')}
                                                 >
-                                                    Pack
+                                                    {t('pack')}
                                                 </button>
                                             )}
                                             {order.status === 'packed' && (
@@ -310,10 +314,10 @@ const Orders = () => {
                                                     className="action-btn deliver"
                                                     onClick={() => handleUpdateStatus(order, 'delivered')}
                                                 >
-                                                    Deliver
+                                                    {t('deliver')}
                                                 </button>
                                             )}
-                                            {order.status === 'delivered' && (
+                                            {(order.status === 'delivered' || order.status === 'cancelled') && (
                                                 <button
                                                     className="action-btn delete"
                                                     onClick={() => handleDeleteOrder(order.id)}
@@ -333,8 +337,8 @@ const Orders = () => {
             {filteredOrders.length === 0 && (
                 <div className="no-orders">
                     <Package size={48} />
-                    <h3>No orders found</h3>
-                    <p>Try adjusting your filters</p>
+                    <h3>{t('noOrdersFound')}</h3>
+                    <p>{t('tryAdjustingFilters')}</p>
                 </div>
             )}
 

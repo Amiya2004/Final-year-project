@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useSettings } from '../../contexts/SettingsContext';
 import { useReviews } from '../../contexts/ReviewsContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
     Typography,
     Row,
@@ -26,6 +27,7 @@ const { TextArea } = Input;
 const Contact = () => {
     const { settings } = useSettings();
     const { addReview } = useReviews();
+    const { t } = useLanguage();
     const [reviewForm] = Form.useForm();
 
     const onSubmitReview = async (values) => {
@@ -44,9 +46,9 @@ const Contact = () => {
     return (
         <div className="contact-page">
             <section className="contact-hero">
-                <Title level={1} className="contact-title">Contact Us</Title>
+                <Title level={1} className="contact-title">{t('contactUs')}</Title>
                 <Paragraph className="contact-subtitle">
-                    We'd love to hear from you! Share your feedback, experience, or reach out for any queries about products, orders, or delivery.
+                    {t('contactSubtitle')}
                 </Paragraph>
             </section>
 
@@ -60,7 +62,7 @@ const Contact = () => {
                             transition={{ duration: 0.6 }}
                         >
                             <Card className="info-card" bordered={false}>
-                                <Title level={3} className="info-card-title">Store Information</Title>
+                                <Title level={3} className="info-card-title">{t('storeInformation')}</Title>
                                 <Divider />
 
                                 <div className="info-item">
@@ -68,7 +70,7 @@ const Contact = () => {
                                         <EnvironmentOutlined className="info-icon" />
                                     </div>
                                     <div className="info-text">
-                                        <Text strong>Address</Text>
+                                        <Text strong>{t('address')}</Text>
                                         <Paragraph>
                                             156, Nellai Velmurgan Store<br />
                                             Sullipalayam, Perundurai - 638052<br />
@@ -82,7 +84,7 @@ const Contact = () => {
                                         <PhoneOutlined className="info-icon" />
                                     </div>
                                     <div className="info-text">
-                                        <Text strong>Phone Number</Text>
+                                        <Text strong>{t('phoneNumber')}</Text>
                                         <Paragraph>{settings.contactPhone}</Paragraph>
                                     </div>
                                 </div>
@@ -92,7 +94,7 @@ const Contact = () => {
                                         <MailOutlined className="info-icon" />
                                     </div>
                                     <div className="info-text">
-                                        <Text strong>Email</Text>
+                                        <Text strong>{t('email')}</Text>
                                         <Paragraph>{settings.contactEmail}</Paragraph>
                                     </div>
                                 </div>
@@ -102,10 +104,10 @@ const Contact = () => {
                                         <ClockCircleOutlined className="info-icon" />
                                     </div>
                                     <div className="info-text">
-                                        <Text strong>Working Hours</Text>
+                                        <Text strong>{t('workingHours')}</Text>
                                         <Paragraph>
-                                            6:00 AM - 10:30 PM<br />
-                                            (Monday - Sunday)
+                                            {t('workingHoursValue')}<br />
+                                            {t('workingDays')}
                                         </Paragraph>
                                     </div>
                                 </div>
@@ -121,9 +123,9 @@ const Contact = () => {
                             transition={{ duration: 0.6 }}
                         >
                             <Card className="review-card" bordered={false}>
-                                <Title level={3} className="info-card-title">What Our Customers Say</Title>
+                                <Title level={3} className="info-card-title">{t('feedbackTitle')}</Title>
                                 <Paragraph className="review-subtitle">
-                                    Share your experience - your feedback helps us improve.
+                                    {t('feedbackSubtitle')}
                                 </Paragraph>
                                 <Divider />
 
@@ -136,31 +138,31 @@ const Contact = () => {
                                 >
                                     <Form.Item
                                         name="name"
-                                        label="Name"
-                                        rules={[{ required: true, message: 'Please enter your name' }]}
+                                        label={t('name')}
+                                        rules={[{ required: true, message: t('pleaseEnterName') }]}
                                     >
-                                        <Input placeholder="Enter your name" />
+                                        <Input placeholder={t('enterYourName')} />
                                     </Form.Item>
 
                                     <Form.Item
                                         name="rating"
-                                        label="Rating"
-                                        rules={[{ required: true, message: 'Please select a rating' }]}
+                                        label={t('rating')}
+                                        rules={[{ required: true, message: t('pleaseSelectRating') }]}
                                     >
                                         <Rate />
                                     </Form.Item>
 
                                     <Form.Item
                                         name="feedback"
-                                        label="Feedback"
-                                        rules={[{ required: true, message: 'Please enter your feedback' }]}
+                                        label={t('feedback')}
+                                        rules={[{ required: true, message: t('pleaseEnterFeedback') }]}
                                     >
-                                        <TextArea rows={4} placeholder="Write your feedback..." />
+                                        <TextArea rows={4} placeholder={t('writeFeedback')} />
                                     </Form.Item>
 
                                     <Form.Item>
                                         <Button type="primary" htmlType="submit" block className="review-submit-btn">
-                                            Submit Feedback
+                                            {t('submitFeedback')}
                                         </Button>
                                     </Form.Item>
                                 </Form>
@@ -177,12 +179,12 @@ const Contact = () => {
                     transition={{ duration: 0.8 }}
                 >
                     <Divider className="map-divider">
-                        <Title level={2}>Visit Our Store</Title>
+                        <Title level={2}>{t('visitOurStore')}</Title>
                     </Divider>
 
                     <div className="map-description">
                         <Paragraph>
-                            Find us easily using the map below. We are located in Perundurai and open daily from 6:00 AM to 10:30 PM.
+                            {t('mapDescription')}
                         </Paragraph>
                     </div>
 

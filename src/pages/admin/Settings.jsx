@@ -23,17 +23,21 @@ import {
     HardDrive,
     Sliders,
     MessageSquare,
-    Trash2
+    Trash2,
+    Globe
 } from 'lucide-react';
 import { getSettings, updateSettings, getFeedback, deleteFeedback } from '../../services/database';
 import { useSettings } from '../../contexts/SettingsContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { auth } from '../../config/firebase';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import './Settings.css';
 
 const Settings = () => {
     const { refreshSettings } = useSettings();
     const { currentUser } = useAuth();
+    const { language, setLanguage, t } = useLanguage();
     const [settings, setSettings] = useState({
         // General Settings
         storeName: '',
@@ -127,7 +131,7 @@ const Settings = () => {
             }
         } catch (error) {
             console.error('Error fetching settings:', error);
-            setMessage({ type: 'error', text: 'Failed to load settings.' });
+            setMessage({ type: 'error', text: t('failedLoadSettings') });
         } finally {
             setLoading(false);
         }
@@ -225,19 +229,19 @@ const Settings = () => {
 
         // Basic validation
         if (!settings.storeName?.trim()) {
-            setMessage({ type: 'error', text: 'Store name is required!' });
+            setMessage({ type: 'error', text: t('storeNameRequired') });
             setSaving(false);
             return;
         }
 
         if (!settings.contactEmail?.trim() || !/\S+@\S+\.\S+/.test(settings.contactEmail)) {
-            setMessage({ type: 'error', text: 'Valid contact email is required!' });
+            setMessage({ type: 'error', text: t('validEmailRequired') });
             setSaving(false);
             return;
         }
 
         if (settings.deliveryFee < 0) {
-            setMessage({ type: 'error', text: 'Delivery fee cannot be negative!' });
+            setMessage({ type: 'error', text: t('deliveryFeeNonNegative') });
             setSaving(false);
             return;
         }
@@ -245,12 +249,12 @@ const Settings = () => {
         try {
             await updateSettings(settings);
             await refreshSettings();
-            setMessage({ type: 'success', text: 'Settings updated successfully!' });
+            setMessage({ type: 'success', text: t('settingsUpdatedSuccess') });
             // Clear success message after 3 seconds
             setTimeout(() => setMessage({ type: '', text: '' }), 3000);
         } catch (error) {
             console.error('Error saving settings:', error);
-            setMessage({ type: 'error', text: 'Failed to update settings. Please try again.' });
+            setMessage({ type: 'error', text: t('settingsUpdateFailed') });
         } finally {
             setSaving(false);
         }
@@ -262,38 +266,39 @@ const Settings = () => {
         setMessage({ type: '', text: '' });
 
         if (passwordData.newPassword !== passwordData.confirmPassword) {
-            setMessage({ type: 'error', text: 'New passwords do not match!' });
+            setMessage({ type: 'error', text: t('passwordsDoNotMatch') });
             setPasswordLoading(false);
             return;
         }
 
         if (passwordData.newPassword.length < 6) {
-            setMessage({ type: 'error', text: 'Password must be at least 6 characters long!' });
+            setMessage({ type: 'error', text: t('passwordMinLength') });
             setPasswordLoading(false);
             return;
         }
 
         try {
-            // Re-authenticate user
+            // Re-authenticate user with live auth reference
+            const user = auth.currentUser;
             const credential = EmailAuthProvider.credential(
-                currentUser.email,
+                user.email,
                 passwordData.currentPassword
             );
-            await reauthenticateWithCredential(currentUser, credential);
+            await reauthenticateWithCredential(user, credential);
             
             // Update password
-            await updatePassword(currentUser, passwordData.newPassword);
+            await updatePassword(user, passwordData.newPassword);
             
-            setMessage({ type: 'success', text: 'Password updated successfully!' });
+            setMessage({ type: 'success', text: t('passwordUpdatedSuccess') });
             setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
             setShowPasswordForm(false);
             setTimeout(() => setMessage({ type: '', text: '' }), 3000);
         } catch (error) {
             console.error('Error updating password:', error);
             if (error.code === 'auth/wrong-password') {
-                setMessage({ type: 'error', text: 'Current password is incorrect!' });
+                setMessage({ type: 'error', text: t('currentPasswordIncorrect') });
             } else {
-                setMessage({ type: 'error', text: 'Failed to update password. Please try again.' });
+                setMessage({ type: 'error', text: t('passwordUpdateFailed') });
             }
         } finally {
             setPasswordLoading(false);
@@ -311,7 +316,7 @@ const Settings = () => {
         // Validate hex color format
         const hexColorRegex = /^#[0-9A-Fa-f]{6}$/;
         if (!hexColorRegex.test(color)) {
-            setMessage({ type: 'error', text: 'Please enter a valid hex color code (e.g., #059669)' });
+            setMessage({ type: 'error', text: t('invalidHexColor') });
             setTimeout(() => setMessage({ type: '', text: '' }), 3000);
             return;
         }
@@ -354,7 +359,7 @@ const Settings = () => {
     };
 
     const resetToDefaults = () => {
-        if (confirm('Are you sure you want to reset all settings to defaults? This action cannot be undone.')) {
+        if (confirm(t('resetConfirm'))) {
             const defaultSettings = {
                 storeName: 'FreshMart',
                 contactEmail: 'contact@freshmart.com',
@@ -383,7 +388,7 @@ const Settings = () => {
             
             setSettings(defaultSettings);
             applyThemeSettings(defaultSettings);
-            setMessage({ type: 'success', text: 'Settings reset to defaults. Don\'t forget to save!' });
+            setMessage({ type: 'success', text: t('settingsResetDefaults') });
         }
     };
 
@@ -397,7 +402,7 @@ const Settings = () => {
         linkElement.setAttribute('download', exportFileDefaultName);
         linkElement.click();
         
-        setMessage({ type: 'success', text: 'Settings exported successfully!' });
+        setMessage({ type: 'success', text: t('settingsExportedSuccess') });
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     };
 
@@ -413,14 +418,14 @@ const Settings = () => {
             setFeedbackItems(sorted);
         } catch (error) {
             console.error('Error fetching feedback:', error);
-            setMessage({ type: 'error', text: 'Failed to load user feedback.' });
+            setMessage({ type: 'error', text: t('failedLoadFeedback') });
         } finally {
             setFeedbackLoading(false);
         }
     };
 
     const handleDeleteFeedback = async (feedbackId) => {
-        if (!confirm('Delete this feedback? This action cannot be undone.')) {
+        if (!confirm(t('deleteFeedbackConfirm'))) {
             return;
         }
         try {
@@ -428,26 +433,25 @@ const Settings = () => {
             setFeedbackItems(prev => prev.filter(item => item.id !== feedbackId));
         } catch (error) {
             console.error('Error deleting feedback:', error);
-            setMessage({ type: 'error', text: 'Failed to delete feedback.' });
+            setMessage({ type: 'error', text: t('failedDeleteFeedback') });
         }
     };
 
     const tabs = [
-        { id: 'general', icon: Store, label: 'General' },
-        { id: 'appearance', icon: Palette, label: 'Appearance' },
-        { id: 'business', icon: Clock, label: 'Business' },
-        { id: 'shipping', icon: Truck, label: 'Delivery' },
-        { id: 'notifications', icon: Bell, label: 'Notifications' },
-        { id: 'preferences', icon: Sliders, label: 'Preferences' },
-        { id: 'security', icon: Shield, label: 'Security' },
-        { id: 'feedback', icon: MessageSquare, label: 'User Feedback' }
+        { id: 'general', icon: Store, label: t('general') },
+        { id: 'appearance', icon: Palette, label: t('appearance') },
+        { id: 'business', icon: Clock, label: t('business') },
+        { id: 'shipping', icon: Truck, label: t('delivery') },
+        { id: 'notifications', icon: Bell, label: t('notifications') },
+        { id: 'preferences', icon: Sliders, label: t('preferences') },
+        { id: 'feedback', icon: MessageSquare, label: t('userFeedback') }
     ];
 
     if (loading) {
         return (
             <div className="admin-page-loading">
                 <Loader className="spinning" />
-                <span>Loading store settings...</span>
+                <span>{t('loadingStoreSettings')}</span>
             </div>
         );
     }
@@ -456,19 +460,10 @@ const Settings = () => {
         <div className="admin-settings-container">
             <header className="admin-page-header">
                 <div>
-                    <h1>Settings</h1>
-                    <p>Configure your store operations and preferences</p>
+                    <h1>{t('settingsTitle')}</h1>
+                    <p>{t('configureStorePreferences')}</p>
                 </div>
                 <div className="header-actions">
-                    <button
-                        type="button"
-                        className="outline-btn"
-                        onClick={exportSettings}
-                        title="Export settings as JSON"
-                    >
-                        <Upload size={18} />
-                        Export
-                    </button>
                     <button
                         type="button"
                         className="outline-btn danger"
@@ -476,7 +471,7 @@ const Settings = () => {
                         title="Reset all settings to defaults"
                     >
                         <RefreshCw size={18} />
-                        Reset
+                        {t('reset')}
                     </button>
                     <button
                         className={`save-btn ${saving ? 'loading' : ''}`}
@@ -484,7 +479,7 @@ const Settings = () => {
                         disabled={saving}
                     >
                         {saving ? <RefreshCw className="spinning" size={18} /> : <Save size={18} />}
-                        {saving ? 'Saving...' : 'Save Changes'}
+                        {saving ? t('savingSettings') : t('saveChanges')}
                     </button>
                 </div>
             </header>
@@ -524,21 +519,21 @@ const Settings = () => {
                             >
                                 <div className="card-header">
                                     <Store size={22} />
-                                    <h2>Store Information</h2>
+                                    <h2>{t('storeInformation')}</h2>
                                 </div>
                                 <div className="form-grid">
                                     <div className="form-group">
-                                        <label>Store Name</label>
+                                        <label>{t('storeName')}</label>
                                         <input
                                             type="text"
                                             name="storeName"
                                             value={settings.storeName}
                                             onChange={handleInputChange}
-                                            placeholder="Enter store name"
+                                            placeholder={t('enterStoreName')}
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label>Contact Email</label>
+                                        <label>{t('contactEmail')}</label>
                                         <input
                                             type="email"
                                             name="contactEmail"
@@ -548,7 +543,7 @@ const Settings = () => {
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label>Contact Phone</label>
+                                        <label>{t('contactPhone')}</label>
                                         <input
                                             type="text"
                                             name="contactPhone"
@@ -559,8 +554,8 @@ const Settings = () => {
                                     </div>
                                     <div className="form-group toggle">
                                         <div className="toggle-info">
-                                            <label>Maintenance Mode</label>
-                                            <p>When active, customers will see a maintenance page.</p>
+                                            <label>{t('maintenanceMode')}</label>
+                                            <p>{t('maintenanceModeDesc')}</p>
                                         </div>
                                         <label className="switch">
                                             <input
@@ -584,23 +579,23 @@ const Settings = () => {
                             >
                                 <div className="card-header">
                                     <Palette size={22} />
-                                    <h2>Theme & Appearance</h2>
+                                    <h2>{t('themeAppearance')}</h2>
                                 </div>
                                 <div className="form-grid">
                                     <div className="form-group">
-                                        <label>Theme Mode</label>
+                                        <label>{t('themeMode')}</label>
                                         <select
                                             name="theme"
                                             value={settings.theme}
                                             onChange={handleInputChange}
                                         >
-                                            <option value="light">Light Theme</option>
-                                            <option value="dark">Dark Theme</option>
-                                            <option value="auto">Auto (System)</option>
+                                            <option value="light">{t('lightTheme')}</option>
+                                            <option value="dark">{t('darkTheme')}</option>
+                                            <option value="auto">{t('autoSystem')}</option>
                                         </select>
                                     </div>
                                     <div className="form-group">
-                                        <label>Primary Color</label>
+                                        <label>{t('primaryColor')}</label>
                                         <div className="color-picker-container">
                                             <input
                                                 type="color"
@@ -618,10 +613,10 @@ const Settings = () => {
                                                 title="Enter a hex color code (e.g., #059669)"
                                             />
                                         </div>
-                                        <p className="field-hint">This color will be used throughout the application interface.</p>
+                                        <p className="field-hint">{t('colorHint')}</p>
                                     </div>
                                     <div className="color-presets">
-                                        <label>Quick Color Presets</label>
+                                        <label>{t('quickColorPresets')}</label>
                                         <div className="preset-colors">
                                             {[
                                                 { color: '#059669', name: 'Emerald' },
@@ -650,8 +645,8 @@ const Settings = () => {
                                     </div>
                                     <div className="form-group toggle">
                                         <div className="toggle-info">
-                                            <label>Dark Mode</label>
-                                            <p>Enable dark mode for the admin interface.</p>
+                                            <label>{t('darkMode')}</label>
+                                            <p>{t('darkModeDesc')}</p>
                                         </div>
                                         <label className="switch">
                                             <input
@@ -675,11 +670,11 @@ const Settings = () => {
                             >
                                 <div className="card-header">
                                     <Clock size={22} />
-                                    <h2>Business Configuration</h2>
+                                    <h2>{t('businessConfiguration')}</h2>
                                 </div>
                                 <div className="form-grid">
                                     <div className="form-group">
-                                        <label>Currency</label>
+                                        <label>{t('currency')}</label>
                                         <select
                                             name="currency"
                                             value={settings.currency}
@@ -692,7 +687,7 @@ const Settings = () => {
                                         </select>
                                     </div>
                                     <div className="form-group">
-                                        <label>Opening Time</label>
+                                        <label>{t('openingTime')}</label>
                                         <input
                                             type="time"
                                             value={settings.businessHours?.open || '09:00'}
@@ -700,7 +695,7 @@ const Settings = () => {
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label>Closing Time</label>
+                                        <label>{t('closingTime')}</label>
                                         <input
                                             type="time"
                                             value={settings.businessHours?.close || '21:00'}
@@ -708,18 +703,18 @@ const Settings = () => {
                                         />
                                     </div>
                                     <div className="form-group full-width">
-                                        <label>Operating Days</label>
+                                        <label>{t('operatingDays')}</label>
                                         <div className="days-selector">
-                                            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, index) => {
+                                            {[t('dayMon'), t('dayTue'), t('dayWed'), t('dayThu'), t('dayFri'), t('daySat'), t('daySun')].map((day, index) => {
                                                 const dayCode = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][index];
                                                 return (
-                                                    <label key={day} className="day-checkbox">
+                                                    <label key={dayCode} className="day-checkbox">
                                                         <input
                                                             type="checkbox"
                                                             checked={settings.businessHours?.daysOpen?.includes(dayCode) || false}
                                                             onChange={(e) => handleDayToggle(dayCode, e.target.checked)}
                                                         />
-                                                        <span>{day.slice(0, 3)}</span>
+                                                        <span>{day}</span>
                                                     </label>
                                                 );
                                             })}
@@ -737,11 +732,11 @@ const Settings = () => {
                             >
                                 <div className="card-header">
                                     <Truck size={22} />
-                                    <h2>Delivery Configuration</h2>
+                                    <h2>{t('deliveryConfiguration')}</h2>
                                 </div>
                                 <div className="form-grid">
                                     <div className="form-group">
-                                        <label>Standard Delivery Fee (₹)</label>
+                                        <label>{t('standardDeliveryFee')}</label>
                                         <input
                                             type="number"
                                             name="deliveryFee"
@@ -750,14 +745,14 @@ const Settings = () => {
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label>Free Delivery Threshold (₹)</label>
+                                        <label>{t('freeDeliveryThreshold')}</label>
                                         <input
                                             type="number"
                                             name="minOrderForFreeDelivery"
                                             value={settings.minOrderForFreeDelivery}
                                             onChange={handleInputChange}
                                         />
-                                        <p className="field-hint">Orders above this amount will have zero delivery fee.</p>
+                                        <p className="field-hint">{t('freeDeliveryHint')}</p>
                                     </div>
                                 </div>
                             </motion.div>
@@ -771,13 +766,13 @@ const Settings = () => {
                             >
                                 <div className="card-header">
                                     <Bell size={22} />
-                                    <h2>System Notifications</h2>
+                                    <h2>{t('systemNotifications')}</h2>
                                 </div>
                                 <div className="form-grid">
                                     <div className="form-group toggle">
                                         <div className="toggle-info">
-                                            <label>Order Email Notifications</label>
-                                            <p>Send internal notification when a new order is placed.</p>
+                                            <label>{t('orderEmailNotifications')}</label>
+                                            <p>{t('orderEmailNotificationsDesc')}</p>
                                         </div>
                                         <label className="switch">
                                             <input
@@ -791,8 +786,8 @@ const Settings = () => {
                                     </div>
                                     <div className="form-group toggle">
                                         <div className="toggle-info">
-                                            <label>Email Notifications</label>
-                                            <p>Enable general email notifications for admin activities.</p>
+                                            <label>{t('emailNotifications')}</label>
+                                            <p>{t('emailNotificationsDesc')}</p>
                                         </div>
                                         <label className="switch">
                                             <input
@@ -806,8 +801,8 @@ const Settings = () => {
                                     </div>
                                     <div className="form-group toggle">
                                         <div className="toggle-info">
-                                            <label>Order Confirmation Emails</label>
-                                            <p>Send confirmation emails to customers for new orders.</p>
+                                            <label>{t('orderConfirmationEmails')}</label>
+                                            <p>{t('orderConfirmationEmailsDesc')}</p>
                                         </div>
                                         <label className="switch">
                                             <input
@@ -821,8 +816,8 @@ const Settings = () => {
                                     </div>
                                     <div className="form-group toggle">
                                         <div className="toggle-info">
-                                            <label>Low Stock Email Alerts</label>
-                                            <p>Send email alerts when products reach low stock threshold.</p>
+                                            <label>{t('lowStockEmailAlerts')}</label>
+                                            <p>{t('lowStockEmailAlertsDesc')}</p>
                                         </div>
                                         <label className="switch">
                                             <input
@@ -836,8 +831,8 @@ const Settings = () => {
                                     </div>
                                     <div className="form-group toggle">
                                         <div className="toggle-info">
-                                            <label>Over Stock Email Alerts</label>
-                                            <p>Send email alerts when products exceed the over-stock threshold.</p>
+                                            <label>{t('overStockEmailAlerts')}</label>
+                                            <p>{t('overStockEmailAlertsDesc')}</p>
                                         </div>
                                         <label className="switch">
                                             <input
@@ -861,11 +856,11 @@ const Settings = () => {
                             >
                                 <div className="card-header">
                                     <Sliders size={22} />
-                                    <h2>System Preferences</h2>
+                                    <h2>{t('systemPreferences')}</h2>
                                 </div>
                                 <div className="form-grid">
                                     <div className="form-group">
-                                        <label>Max File Upload Size (MB)</label>
+                                        <label>{t('maxFileUploadSize')}</label>
                                         <input
                                             type="number"
                                             name="maxFileUpload"
@@ -874,26 +869,26 @@ const Settings = () => {
                                             min="1"
                                             max="50"
                                         />
-                                        <p className="field-hint">Maximum size for uploaded images and files.</p>
+                                        <p className="field-hint">{t('maxFileUploadHint')}</p>
                                     </div>
                                     <div className="form-group">
-                                        <label>Backup Frequency</label>
+                                        <label>{t('backupFrequency')}</label>
                                         <select
                                             name="backupFrequency"
                                             value={settings.backupFrequency}
                                             onChange={handleInputChange}
                                         >
-                                            <option value="daily">Daily</option>
-                                            <option value="weekly">Weekly</option>
-                                            <option value="monthly">Monthly</option>
-                                            <option value="disabled">Disabled</option>
+                                            <option value="daily">{t('daily')}</option>
+                                            <option value="weekly">{t('weekly')}</option>
+                                            <option value="monthly">{t('monthly')}</option>
+                                            <option value="disabled">{t('disabled')}</option>
                                         </select>
-                                        <p className="field-hint">How often to create automatic data backups.</p>
+                                        <p className="field-hint">{t('backupFrequencyHint')}</p>
                                     </div>
                                     <div className="form-group toggle">
                                         <div className="toggle-info">
-                                            <label>Auto Backup</label>
-                                            <p>Automatically create system backups based on frequency.</p>
+                                            <label>{t('autoBackup')}</label>
+                                            <p>{t('autoBackupDesc')}</p>
                                         </div>
                                         <label className="switch">
                                             <input
@@ -905,161 +900,34 @@ const Settings = () => {
                                             <span className="slider round"></span>
                                         </label>
                                     </div>
+
+                                    <div className="form-group">
+                                        <label><Globe size={16} style={{ marginRight: 6, verticalAlign: 'middle' }} />{t('languageLabel')}</label>
+                                        <div className="admin-lang-selector">
+                                            <button
+                                                type="button"
+                                                className={`admin-lang-btn ${language === 'en' ? 'active' : ''}`}
+                                                onClick={() => setLanguage('en')}
+                                            >
+                                                <span className="admin-lang-flag">🇬🇧</span>
+                                                <span>English</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`admin-lang-btn ${language === 'ta' ? 'active' : ''}`}
+                                                onClick={() => setLanguage('ta')}
+                                            >
+                                                <span className="admin-lang-flag">🇮🇳</span>
+                                                <span>தமிழ் (Tamil)</span>
+                                            </button>
+                                        </div>
+                                        <p className="field-hint">{t('languageHint')}</p>
+                                    </div>
                                 </div>
                             </motion.div>
                         )}
 
-                        {activeTab === 'security' && (
-                            <motion.div
-                                className="settings-card"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                            >
-                                <div className="card-header">
-                                    <Shield size={22} />
-                                    <h2>Security & Privacy</h2>
-                                </div>
-                                
-                                <div className="security-section">
-                                    <div className="password-section">
-                                        <div className="section-header">
-                                            <h3>Password Management</h3>
-                                            <button
-                                                type="button"
-                                                className="outline-btn"
-                                                onClick={() => setShowPasswordForm(!showPasswordForm)}
-                                            >
-                                                <Key size={18} />
-                                                {showPasswordForm ? 'Cancel' : 'Change Password'}
-                                            </button>
-                                        </div>
-                                        
-                                        {showPasswordForm && (
-                                            <motion.form
-                                                className="password-form"
-                                                onSubmit={handlePasswordChange}
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: 'auto' }}
-                                                exit={{ opacity: 0, height: 0 }}
-                                            >
-                                                <div className="form-grid">
-                                                    <div className="form-group">
-                                                        <label>Current Password</label>
-                                                        <div className="password-input-container">
-                                                            <input
-                                                                type={showPasswords.current ? "text" : "password"}
-                                                                value={passwordData.currentPassword}
-                                                                onChange={(e) => setPasswordData(prev => ({
-                                                                    ...prev,
-                                                                    currentPassword: e.target.value
-                                                                }))}
-                                                                required
-                                                                placeholder="Enter current password"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                className="password-toggle"
-                                                                onClick={() => togglePasswordVisibility('current')}
-                                                            >
-                                                                {showPasswords.current ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="form-group">
-                                                        <label>New Password</label>
-                                                        <div className="password-input-container">
-                                                            <input
-                                                                type={showPasswords.new ? "text" : "password"}
-                                                                value={passwordData.newPassword}
-                                                                onChange={(e) => setPasswordData(prev => ({
-                                                                    ...prev,
-                                                                    newPassword: e.target.value
-                                                                }))}
-                                                                required
-                                                                minLength={6}
-                                                                placeholder="Enter new password"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                className="password-toggle"
-                                                                onClick={() => togglePasswordVisibility('new')}
-                                                            >
-                                                                {showPasswords.new ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="form-group">
-                                                        <label>Confirm New Password</label>
-                                                        <div className="password-input-container">
-                                                            <input
-                                                                type={showPasswords.confirm ? "text" : "password"}
-                                                                value={passwordData.confirmPassword}
-                                                                onChange={(e) => setPasswordData(prev => ({
-                                                                    ...prev,
-                                                                    confirmPassword: e.target.value
-                                                                }))}
-                                                                required
-                                                                minLength={6}
-                                                                placeholder="Confirm new password"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                className="password-toggle"
-                                                                onClick={() => togglePasswordVisibility('confirm')}
-                                                            >
-                                                                {showPasswords.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="password-form-actions">
-                                                    <button
-                                                        type="submit"
-                                                        className={`save-btn ${passwordLoading ? 'loading' : ''}`}
-                                                        disabled={passwordLoading}
-                                                    >
-                                                        {passwordLoading ? <RefreshCw className="spinning" size={18} /> : <Save size={18} />}
-                                                        {passwordLoading ? 'Updating...' : 'Update Password'}
-                                                    </button>
-                                                </div>
-                                            </motion.form>
-                                        )}
-                                    </div>
-                                    
-                                    <div className="security-info">
-                                        <div className="info-section">
-                                            <h3>Account Information</h3>
-                                            <div className="info-item">
-                                                <Mail size={20} />
-                                                <div>
-                                                    <strong>Email:</strong>
-                                                    <span>{currentUser?.email}</span>
-                                                </div>
-                                            </div>
-                                            <div className="info-item">
-                                                <Key size={20} />
-                                                <div>
-                                                    <strong>Last Password Change:</strong>
-                                                    <span>Not tracked</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="firebase-section">
-                                            <Info size={40} />
-                                            <p>Advanced authentication settings are managed through Firebase Console for maximum security. Contact system administrator for privileged role management.</p>
-                                            <button
-                                                type="button"
-                                                className="outline-btn"
-                                                onClick={() => window.open('https://console.firebase.google.com/', '_blank')}
-                                            >
-                                                Go to Firebase Console
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
+
 
                         {activeTab === 'feedback' && (
                             <motion.div
@@ -1069,52 +937,43 @@ const Settings = () => {
                             >
                                 <div className="card-header">
                                     <MessageSquare size={22} />
-                                    <h2>User Feedback</h2>
+                                    <h2>{t('userFeedbackTitle')}</h2>
                                 </div>
                                 <div className="feedback-header">
-                                    <p className="field-hint">Feedback submitted from the Contact page appears here.</p>
-                                    <button
-                                        type="button"
-                                        className="outline-btn"
-                                        onClick={fetchFeedback}
-                                        disabled={feedbackLoading}
-                                    >
-                                        <RefreshCw size={18} className={feedbackLoading ? 'spinning' : ''} />
-                                        {feedbackLoading ? 'Refreshing...' : 'Refresh'}
-                                    </button>
+                                    <p className="field-hint">{t('feedbackHint')}</p>
                                 </div>
 
                                 {feedbackLoading ? (
                                     <div className="feedback-loading">
                                         <Loader className="spinning" />
-                                        <span>Loading feedback...</span>
+                                        <span>{t('loadingFeedback')}</span>
                                     </div>
                                 ) : (
                                     <div className="feedback-list">
                                         {feedbackItems.length === 0 ? (
                                             <div className="feedback-empty">
-                                                <p>No feedback received yet.</p>
+                                                <p>{t('noFeedbackYet')}</p>
                                             </div>
                                         ) : (
                                             feedbackItems.map(item => (
                                                 <div key={item.id} className="feedback-item">
                                                     <div className="feedback-main">
                                                         <div className="feedback-meta">
-                                                            <strong>{item.name || 'Customer'}</strong>
+                                                            <strong>{item.name || t('customerFallback')}</strong>
                                                             {item.rating ? (
-                                                                <span className="feedback-rating">Rating: {item.rating}/5</span>
+                                                                <span className="feedback-rating">{t('ratingLabel').replace('{rating}', item.rating)}</span>
                                                             ) : null}
                                                         </div>
                                                         <p>{item.comment}</p>
                                                         <span className="feedback-date">
-                                                            {item.createdAt ? new Date(item.createdAt).toLocaleString() : 'Unknown date'}
+                                                            {item.createdAt ? new Date(item.createdAt).toLocaleString() : t('unknownDate')}
                                                         </span>
                                                     </div>
                                                     <button
                                                         type="button"
                                                         className="feedback-delete"
                                                         onClick={() => handleDeleteFeedback(item.id)}
-                                                        title="Delete feedback"
+                                                        title={t('deleteFeedback')}
                                                     >
                                                         <Trash2 size={18} />
                                                     </button>

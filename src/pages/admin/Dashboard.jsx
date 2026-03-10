@@ -32,11 +32,13 @@ import {
 } from 'recharts';
 import { subscribeToProducts, subscribeToOrders, seedProducts } from '../../services/database';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { monthlySalesData, categorySalesData, sampleProducts } from '../../data/sampleData';
 import './Dashboard.css';
 
 const Dashboard = () => {
     const { settings } = useSettings();
+    const { t } = useLanguage();
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -158,20 +160,20 @@ const Dashboard = () => {
     };
 
     const statsCards = [
-        { key: 'total-products', label: 'Total Products', value: totalProducts, icon: Package, color: '#3b82f6', change: '+12%', up: true },
-        { key: 'available-stock', label: 'Available Stock', value: totalStock, icon: Boxes, color: '#22c55e', change: '+8%', up: true },
-        { key: 'low-stock', label: 'Low Stock Items', value: lowStockItems, icon: TrendingDown, color: '#ef4444', change: '-3', up: false },
-        { key: 'overstock', label: 'Overstock Items', value: overstockItems, icon: TrendingUp, color: '#f59e0b', change: '+2', up: true },
-        { key: 'expiry-alerts', label: 'Expiry Alerts', value: expiryAlertItems, icon: AlertTriangle, color: '#f97316', change: '5 items', up: false },
-        { key: 'pending-orders', label: 'Pending Orders', value: pendingOrders, icon: ShoppingCart, color: '#06b6d4', change: '4 new', up: true },
-        { key: 'today-sales', label: "Today's Sales", value: `₹${todaySales.toLocaleString()}`, icon: DollarSign, color: '#10b981', change: '+18%', up: true }
+        { key: 'total-products', label: t('totalProducts'), value: totalProducts, icon: Package, color: '#3b82f6', change: '+12%', up: true },
+        { key: 'available-stock', label: t('availableStock'), value: totalStock, icon: Boxes, color: '#22c55e', change: '+8%', up: true },
+        { key: 'low-stock', label: t('lowStockItems'), value: lowStockItems, icon: TrendingDown, color: '#ef4444', change: '-3', up: false },
+        { key: 'overstock', label: t('overstockItems'), value: overstockItems, icon: TrendingUp, color: '#f59e0b', change: '+2', up: true },
+        { key: 'expiry-alerts', label: t('expiryAlerts'), value: expiryAlertItems, icon: AlertTriangle, color: '#f97316', change: '5 items', up: false },
+        { key: 'pending-orders', label: t('pendingOrders'), value: pendingOrders, icon: ShoppingCart, color: '#06b6d4', change: '4 new', up: true },
+        { key: 'today-sales', label: t('todaysSales'), value: `₹${todaySales.toLocaleString()}`, icon: DollarSign, color: '#10b981', change: '+18%', up: true }
     ];
 
     if (loading) {
         return (
             <div className="dashboard" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
                 <Loader size={32} className="spinning" />
-                <span style={{ marginLeft: '12px' }}>Loading dashboard data...</span>
+                <span style={{ marginLeft: '12px' }}>{t('loadingDashboard')}</span>
             </div>
         );
     }
@@ -180,8 +182,8 @@ const Dashboard = () => {
         <div className="dashboard">
             <div className="dashboard-header">
                 <div>
-                    <h1>Dashboard Overview</h1>
-                    <p>Welcome back! Here's what's happening with your store today.</p>
+                    <h1>{t('dashboardOverview')}</h1>
+                    <p>{t('dashboardWelcome')}</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     {products.length === 0 && (
@@ -200,7 +202,7 @@ const Dashboard = () => {
                                 opacity: seeding ? 0.7 : 1
                             }}
                         >
-                            {seeding ? 'Seeding...' : '🌱 Seed Initial Data'}
+                            {seeding ? t('seedingData') : t('seedInitialData')}
                         </button>
                     )}
                     <div className="header-date">
@@ -257,7 +259,7 @@ const Dashboard = () => {
                     </div>
                     <div className="detail-panel-body">
                         {getDetailItems(expandedCard).length === 0 ? (
-                            <p className="detail-empty">No items to display</p>
+                            <p className="detail-empty">{t('noItemsToDisplay')}</p>
                         ) : (
                             <div className="detail-list">
                                 {/* Product-type cards */}
@@ -265,10 +267,10 @@ const Dashboard = () => {
                                     <>
                                         <div className="detail-row detail-row-header">
                                             <span className="detail-col-img"></span>
-                                            <span className="detail-col-name">Product</span>
-                                            <span className="detail-col-cat">Category</span>
-                                            <span className="detail-col-stock">Total Stock</span>
-                                            <span className="detail-col-price">Brands</span>
+                                            <span className="detail-col-name">{t('product')}</span>
+                                            <span className="detail-col-cat">{t('category')}</span>
+                                            <span className="detail-col-stock">{t('totalStock')}</span>
+                                            <span className="detail-col-price">{t('brands')}</span>
                                         </div>
                                         {getDetailItems(expandedCard).map((item, i) => (
                                             <div key={i} className="detail-product-block">
@@ -303,9 +305,9 @@ const Dashboard = () => {
                                                                 <div className="brand-detail-name">{brand.name}</div>
                                                                 <div className="brand-variant-grid">
                                                                     <div className="brand-variant-header">
-                                                                        <span>Quantity</span>
-                                                                        <span>Price</span>
-                                                                        <span>Stock</span>
+                                                                        <span>{t('quantity')}</span>
+                                                                        <span>{t('price')}</span>
+                                                                        <span>{t('stock')}</span>
                                                                     </div>
                                                                     {filteredVariants.map((v, vi) => (
                                                                         <div key={vi} className="brand-variant-row">
@@ -332,10 +334,10 @@ const Dashboard = () => {
                                     <>
                                         <div className="detail-row detail-row-header">
                                             <span className="detail-col-img"></span>
-                                            <span className="detail-col-name">Product</span>
-                                            <span className="detail-col-cat">Category</span>
-                                            <span className="detail-col-stock">Expiry Date</span>
-                                            <span className="detail-col-price">Days Left</span>
+                                            <span className="detail-col-name">{t('product')}</span>
+                                            <span className="detail-col-cat">{t('category')}</span>
+                                            <span className="detail-col-stock">{t('expiryDate')}</span>
+                                            <span className="detail-col-price">{t('daysLeft')}</span>
                                         </div>
                                         {getDetailItems(expandedCard).map((item, i) => (
                                             <div key={i} className="detail-product-block">
@@ -361,9 +363,9 @@ const Dashboard = () => {
                                                                 <div className="brand-detail-name">{brand.name}</div>
                                                                 <div className="brand-variant-grid">
                                                                     <div className="brand-variant-header">
-                                                                        <span>Quantity</span>
-                                                                        <span>Price</span>
-                                                                        <span>Stock</span>
+                                                                        <span>{t('quantity')}</span>
+                                                                        <span>{t('price')}</span>
+                                                                        <span>{t('stock')}</span>
                                                                     </div>
                                                                     {brand.variants.map((v, vi) => (
                                                                         <div key={vi} className="brand-variant-row">
@@ -388,10 +390,10 @@ const Dashboard = () => {
                                 {(expandedCard === 'pending-orders' || expandedCard === 'today-sales') && (
                                     <>
                                         <div className="detail-row detail-row-header detail-row-orders">
-                                            <span className="detail-col-name">Customer</span>
-                                            <span className="detail-col-cat">Items</span>
-                                            <span className="detail-col-stock">Total</span>
-                                            <span className="detail-col-price">Status</span>
+                                            <span className="detail-col-name">{t('customer')}</span>
+                                            <span className="detail-col-cat">{t('items')}</span>
+                                            <span className="detail-col-stock">{t('total')}</span>
+                                            <span className="detail-col-price">{t('status')}</span>
                                         </div>
                                         {getDetailItems(expandedCard).map((item, i) => (
                                             <div key={i} className="detail-row detail-row-orders">
@@ -418,7 +420,7 @@ const Dashboard = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                 >
-                    <h3>Monthly Sales</h3>
+                    <h3>{t('monthlySales')}</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={monthlySalesData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -456,7 +458,7 @@ const Dashboard = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
                 >
-                    <h3>Category-wise Demand</h3>
+                    <h3>{t('categoryWiseDemand')}</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
                             <Pie
@@ -493,10 +495,10 @@ const Dashboard = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
                 >
-                    <h3>Recent Orders</h3>
+                    <h3>{t('recentOrders')}</h3>
                     <div className="orders-list">
                         {orders.length === 0 ? (
-                            <p style={{ textAlign: 'center', color: '#94a3b8', padding: '20px' }}>No orders yet</p>
+                            <p style={{ textAlign: 'center', color: '#94a3b8', padding: '20px' }}>{t('noOrdersYet')}</p>
                         ) : (
                             orders.slice(0, 5).map((order, index) => (
                                 <div key={order.id || index} className="order-item">

@@ -6,10 +6,12 @@ import ProductCard from '../../components/user/ProductCard';
 import { subscribeToProducts } from '../../services/database';
 import { sampleCategories, heroSlides, customerReviews } from '../../data/sampleData';
 import { useReviews } from '../../contexts/ReviewsContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import styles from './Home.module.css';
 
 const Home = () => {
     const { reviews: savedReviews } = useReviews();
+    const { t } = useLanguage();
     const [currentSlide, setCurrentSlide] = useState(0);
     const [allProducts, setAllProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -116,9 +118,9 @@ const Home = () => {
             {/* Categories Section */}
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>Shop by Category</h2>
+                    <h2 className={styles.sectionTitle}>{t('shopByCategory')}</h2>
                     <Link to="/shop" className={styles.sectionLink}>
-                        View All <ArrowRight size={18} />
+                        {t('viewAll')} <ArrowRight size={18} />
                     </Link>
                 </div>
                 <div className={styles.categoriesGrid}>
@@ -151,7 +153,7 @@ const Home = () => {
             {/* Customer Reviews Section */}
             <section className={`${styles.section} ${styles.reviewsSection}`}>
                 <div className={`${styles.sectionHeader} ${styles.sectionHeaderCenter}`}>
-                    <h2 className={styles.sectionTitle}>What Our Customers Say</h2>
+                    <h2 className={styles.sectionTitle}>{t('whatCustomersSay')}</h2>
                 </div>
                 <div className={styles.reviewsGrid}>
                     {combinedReviews.map((review, index) => (
@@ -186,10 +188,10 @@ const Home = () => {
             {/* CTA Banner */}
             <section className={styles.ctaBanner}>
                 <div className={styles.ctaContent}>
-                    <h2>Get Fresh Groceries Delivered!</h2>
-                    <p>Free delivery on orders above ₹500. Shop now and save more!</p>
+                    <h2>{t('getFreshGroceries')}</h2>
+                    <p>{t('freeDeliveryBanner')}</p>
                     <Link to="/shop" className={styles.ctaButton}>
-                        Start Shopping
+                        {t('startShopping')}
                         <ArrowRight size={20} />
                     </Link>
                 </div>

@@ -10,12 +10,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { createOrder, getUserAddresses, saveUserAddress, deleteUserAddress } from '../../services/database';
 import { initiateRazorpayPayment, generateOrderId } from '../../services/razorpay';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './Checkout.css';
 
 const Checkout = () => {
     const { cart, cartTotal, clearCart } = useCart();
     const { currentUser } = useAuth();
     const { settings } = useSettings();
+    const { t } = useLanguage();
     const navigate = useNavigate();
 
     const [step, setStep] = useState(1); // 1: Address, 2: Payment
@@ -313,11 +315,11 @@ const Checkout = () => {
                     animate={{ opacity: 1, y: 0 }}
                 >
                     <ShoppingBag size={80} strokeWidth={1} />
-                    <h2>Your cart is empty</h2>
-                    <p>Add some items before checking out.</p>
+                    <h2>{t('yourCartEmpty')}</h2>
+                    <p>{t('addItemsBeforeCheckout')}</p>
                     <button onClick={() => navigate('/shop')} className="checkout-back-to-shop">
                         <ArrowLeft size={20} />
-                        Go to Shop
+                        {t('goToShop')}
                     </button>
                 </motion.div>
             </div>
@@ -328,8 +330,8 @@ const Checkout = () => {
         <div className="checkout-page">
             {/* Header */}
             <div className="checkout-header">
-                <h1>Checkout</h1>
-                <p>Complete your order securely</p>
+                <h1>{t('checkout')}</h1>
+                <p>{t('completeOrderSecurely')}</p>
             </div>
 
             {/* Progress Steps */}
@@ -338,14 +340,14 @@ const Checkout = () => {
                     <div className="checkout-step-circle">
                         {step > 1 ? <CheckCircle size={20} /> : <span>1</span>}
                     </div>
-                    <span className="checkout-step-label">Delivery Address</span>
+                    <span className="checkout-step-label">{t('deliveryAddress')}</span>
                 </div>
                 <div className="checkout-progress-line" />
                 <div className={`checkout-progress-step ${step >= 2 ? 'active' : ''}`}>
                     <div className="checkout-step-circle">
                         <span>2</span>
                     </div>
-                    <span className="checkout-step-label">Payment</span>
+                    <span className="checkout-step-label">{t('payment')}</span>
                 </div>
             </div>
 
@@ -363,13 +365,13 @@ const Checkout = () => {
                             >
                                 <div className="checkout-card-header">
                                     <MapPin size={22} />
-                                    <h2>Delivery Address</h2>
+                                    <h2>{t('deliveryAddress')}</h2>
                                 </div>
 
                                 {/* Saved Addresses */}
                                 {!loadingAddresses && savedAddresses.length > 0 && (
                                     <div className="saved-addresses-section">
-                                        <h3 className="saved-addresses-title">Saved Addresses</h3>
+                                        <h3 className="saved-addresses-title">{t('savedAddresses')}</h3>
                                         <div className="saved-addresses-list">
                                             {savedAddresses.map((addr) => (
                                                 <div
@@ -400,7 +402,7 @@ const Checkout = () => {
                                         {!showNewForm && (
                                             <button className="add-new-address-btn" onClick={startNewAddress}>
                                                 <Plus size={18} />
-                                                Add New Address
+                                                {t('addNewAddress')}
                                             </button>
                                         )}
                                     </div>
@@ -409,7 +411,7 @@ const Checkout = () => {
                                 {loadingAddresses && (
                                     <div className="address-loading">
                                         <div className="address-loading-spinner" />
-                                        <p>Loading saved addresses...</p>
+                                        <p>{t('loadingSavedAddresses')}</p>
                                     </div>
                                 )}
 
@@ -418,40 +420,40 @@ const Checkout = () => {
                                     <div className="new-address-form-wrapper">
                                         {savedAddresses.length > 0 && (
                                             <div className="new-address-form-header">
-                                                <h3>New Address</h3>
+                                                <h3>{t('newAddress')}</h3>
                                                 <button className="cancel-new-btn" onClick={() => {
                                                     if (savedAddresses.length > 0) {
                                                         selectAddress(savedAddresses[0]);
                                                     }
-                                                }}>Cancel</button>
+                                                }}>{t('cancel')}</button>
                                             </div>
                                         )}
                                         <div className="checkout-form-grid">
                                             <div className="checkout-form-group full-width">
                                                 <label>
                                                     <User size={16} />
-                                                    Full Name *
+                                                    {t('fullName')} *
                                                 </label>
                                                 <input
                                                     type="text"
                                                     name="fullName"
                                                     value={address.fullName}
                                                     onChange={handleAddressChange}
-                                                    placeholder="Enter your full name"
+                                                    placeholder={t('enterFullName')}
                                                 />
                                             </div>
 
                                             <div className="checkout-form-group">
                                                 <label>
                                                     <Phone size={16} />
-                                                    Phone Number *
+                                                    {t('phoneNumber')} *
                                                 </label>
                                                 <input
                                                     type="tel"
                                                     name="phone"
                                                     value={address.phone}
                                                     onChange={handleAddressChange}
-                                                    placeholder="10-digit mobile number"
+                                                    placeholder={t('mobileNumber')}
                                                     maxLength={10}
                                                 />
                                             </div>
@@ -459,72 +461,72 @@ const Checkout = () => {
                                             <div className="checkout-form-group">
                                                 <label>
                                                     <Mail size={16} />
-                                                    Email
+                                                    {t('email')}
                                                 </label>
                                                 <input
                                                     type="email"
                                                     name="email"
                                                     value={address.email}
                                                     onChange={handleAddressChange}
-                                                    placeholder="your@email.com"
+                                                    placeholder={t('emailPlaceholder')}
                                                 />
                                             </div>
 
                                             <div className="checkout-form-group full-width">
                                                 <label>
                                                     <MapPin size={16} />
-                                                    Address Line 1 *
+                                                    {t('addressLine1')} *
                                                 </label>
                                                 <input
                                                     type="text"
                                                     name="addressLine1"
                                                     value={address.addressLine1}
                                                     onChange={handleAddressChange}
-                                                    placeholder="House/Flat No., Street Name"
+                                                    placeholder={t('houseFlatStreet')}
                                                 />
                                             </div>
 
                                             <div className="checkout-form-group full-width">
-                                                <label>Address Line 2</label>
+                                                <label>{t('addressLine2')}</label>
                                                 <input
                                                     type="text"
                                                     name="addressLine2"
                                                     value={address.addressLine2}
                                                     onChange={handleAddressChange}
-                                                    placeholder="Landmark, Area (Optional)"
+                                                    placeholder={t('landmarkArea')}
                                                 />
                                             </div>
 
                                             <div className="checkout-form-group">
-                                                <label>City *</label>
+                                                <label>{t('city')} *</label>
                                                 <input
                                                     type="text"
                                                     name="city"
                                                     value={address.city}
                                                     onChange={handleAddressChange}
-                                                    placeholder="City name"
+                                                    placeholder={t('city')}
                                                 />
                                             </div>
 
                                             <div className="checkout-form-group">
-                                                <label>State</label>
+                                                <label>{t('state')}</label>
                                                 <input
                                                     type="text"
                                                     name="state"
                                                     value={address.state}
                                                     onChange={handleAddressChange}
-                                                    placeholder="State"
+                                                    placeholder={t('state')}
                                                 />
                                             </div>
 
                                             <div className="checkout-form-group">
-                                                <label>Pincode *</label>
+                                                <label>{t('pinCode')} *</label>
                                                 <input
                                                     type="text"
                                                     name="pincode"
                                                     value={address.pincode}
                                                     onChange={handleAddressChange}
-                                                    placeholder="6-digit pincode"
+                                                    placeholder={t('pincodePlaceholder')}
                                                     maxLength={6}
                                                 />
                                             </div>
@@ -533,7 +535,7 @@ const Checkout = () => {
                                 )}
 
                                 <button className="checkout-proceed-btn" onClick={handleProceedToPayment}>
-                                    Proceed to Payment
+                                    {t('proceedToPayment')}
                                     <ChevronRight size={20} />
                                 </button>
                             </motion.div>
@@ -549,15 +551,15 @@ const Checkout = () => {
                             >
                                 <div className="checkout-card-header">
                                     <CreditCard size={22} />
-                                    <h2>Payment</h2>
+                                    <h2>{t('payment')}</h2>
                                 </div>
 
                                 {/* Delivery Address Summary */}
                                 <div className="checkout-address-summary-card">
                                     <div className="checkout-address-summary-label">
                                         <MapPin size={16} />
-                                        <span>Delivering to</span>
-                                        <button className="checkout-change-btn" onClick={() => setStep(1)}>Change</button>
+                                        <span>{t('deliveringTo')}</span>
+                                        <button className="checkout-change-btn" onClick={() => setStep(1)}>{t('change')}</button>
                                     </div>
                                     <div className="checkout-address-summary-content">
                                         <strong>{address.fullName}</strong>
@@ -569,7 +571,7 @@ const Checkout = () => {
 
                                 {/* Payment Methods */}
                                 <div className="checkout-payment-options">
-                                    <h3>Select Payment Method</h3>
+                                    <h3>{t('selectPaymentMethod')}</h3>
 
                                     <div
                                         className={`checkout-payment-option ${paymentMethod === 'razorpay' ? 'selected' : ''}`}
@@ -581,10 +583,10 @@ const Checkout = () => {
                                         <div className="checkout-option-info">
                                             <div className="checkout-option-title">
                                                 <CreditCard size={18} />
-                                                <span>Pay with Razorpay</span>
+                                                <span>{t('payWithRazorpay')}</span>
                                             </div>
                                             <p className="checkout-option-desc">
-                                                Credit/Debit Card, UPI, Net Banking, Wallets
+                                                {t('razorpayDesc')}
                                             </p>
                                         </div>
                                         <div className="checkout-option-icons">
@@ -604,10 +606,10 @@ const Checkout = () => {
                                         <div className="checkout-option-info">
                                             <div className="checkout-option-title">
                                                 <Banknote size={18} />
-                                                <span>Cash on Delivery</span>
+                                                <span>{t('cashOnDelivery')}</span>
                                             </div>
                                             <p className="checkout-option-desc">
-                                                Pay when your order is delivered to your doorstep
+                                                {t('codDesc')}
                                             </p>
                                         </div>
                                         <div className="checkout-option-icons">
@@ -622,13 +624,13 @@ const Checkout = () => {
                                     <div>
                                         {paymentMethod === 'razorpay' ? (
                                             <>
-                                                <strong>100% Secure Payment</strong>
-                                                <p>All transactions are secure and encrypted by Razorpay</p>
+                                                <strong>{t('securePayment')}</strong>
+                                                <p>{t('securePaymentDesc')}</p>
                                             </>
                                         ) : (
                                             <>
-                                                <strong>Cash on Delivery</strong>
-                                                <p>Pay with cash when your order arrives. No advance payment needed.</p>
+                                                <strong>{t('cashOnDelivery')}</strong>
+                                                <p>{t('codInfo')}</p>
                                             </>
                                         )}
                                     </div>
@@ -642,24 +644,24 @@ const Checkout = () => {
                                     {processing ? (
                                         <>
                                             <div className="checkout-btn-spinner" />
-                                            Processing...
+                                            {t('processing')}
                                         </>
                                     ) : paymentMethod === 'cod' ? (
                                         <>
                                             <Banknote size={20} />
-                                            Place Order — ₹{finalTotal.toFixed(2)}
+                                            {t('placeOrder')} — ₹{finalTotal.toFixed(2)}
                                         </>
                                     ) : (
                                         <>
                                             <CreditCard size={20} />
-                                            Pay ₹{finalTotal.toFixed(2)}
+                                            {t('pay')} ₹{finalTotal.toFixed(2)}
                                         </>
                                     )}
                                 </button>
 
                                 <button className="checkout-back-btn" onClick={() => setStep(1)}>
                                     <ArrowLeft size={18} />
-                                    Back to Address
+                                    {t('backToAddress')}
                                 </button>
                             </motion.div>
                         )}
@@ -671,7 +673,7 @@ const Checkout = () => {
                     <div className="checkout-order-summary">
                         <h3>
                             <ShoppingBag size={20} />
-                            Order Summary
+                            {t('orderSummary')}
                         </h3>
 
                         <div className="checkout-summary-items">
@@ -680,7 +682,7 @@ const Checkout = () => {
                                     <img src={item.image} alt={item.name} />
                                     <div className="checkout-summary-item-info">
                                         <span className="item-name">{item.name}</span>
-                                        <span className="item-qty">Qty: {item.quantity}</span>
+                                        <span className="item-qty">{t('qty')}: {item.quantity}</span>
                                     </div>
                                     <span className="item-total">₹{(item.price * item.quantity).toFixed(2)}</span>
                                 </div>
@@ -689,21 +691,21 @@ const Checkout = () => {
 
                         <div className="checkout-summary-breakdown">
                             <div className="checkout-breakdown-row">
-                                <span>Subtotal ({cart.length} items)</span>
+                                <span>{t('subtotal')} ({cart.length} {t('items')})</span>
                                 <span>₹{cartTotal.toFixed(2)}</span>
                             </div>
                             <div className="checkout-breakdown-row">
                                 <span>
-                                    <Truck size={16} /> Delivery
+                                    <Truck size={16} /> {t('delivery')}
                                 </span>
                                 <span className={deliveryFee === 0 ? 'free-tag' : ''}>
-                                    {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}
+                                    {deliveryFee === 0 ? t('free') : `₹${deliveryFee}`}
                                 </span>
                             </div>
                         </div>
 
                         <div className="checkout-grand-total">
-                            <span>Total</span>
+                            <span>{t('total')}</span>
                             <span>₹{finalTotal.toFixed(2)}</span>
                         </div>
 

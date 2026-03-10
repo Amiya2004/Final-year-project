@@ -14,10 +14,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './AdminSidebar.css';
 
 const AdminSidebar = () => {
     const { settings } = useSettings();
+    const { t } = useLanguage();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { logout } = useAuth();
     const navigate = useNavigate();
@@ -32,13 +34,13 @@ const AdminSidebar = () => {
     };
 
     const menuItems = [
-        { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
-        { path: '/admin/products', icon: Package, label: 'Products' },
-        { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
-        { path: '/admin/stock', icon: BarChart3, label: 'Stock Management' },
+        { path: '/admin', icon: LayoutDashboard, label: t('adminDashboardNav'), end: true },
+        { path: '/admin/products', icon: Package, label: t('adminProducts') },
+        { path: '/admin/orders', icon: ShoppingCart, label: t('adminOrders') },
+        { path: '/admin/stock', icon: BarChart3, label: t('adminStockManagement') },
 
-        { path: '/admin/expiry', icon: AlertTriangle, label: 'Expiry Alerts' },
-        { path: '/admin/settings', icon: Settings, label: 'Settings' }
+        { path: '/admin/expiry', icon: AlertTriangle, label: t('adminExpiryAlerts') },
+        { path: '/admin/settings', icon: Settings, label: t('adminSettings') }
     ];
 
     return (
@@ -63,7 +65,7 @@ const AdminSidebar = () => {
             <div className="sidebar-home-link">
                 <button className="home-btn" onClick={handleGoHome}>
                     <Home size={20} />
-                    {!isCollapsed && <span>Back to Home</span>}
+                    {!isCollapsed && <span>{t('backToHome')}</span>}
                 </button>
             </div>
 
@@ -86,7 +88,7 @@ const AdminSidebar = () => {
             <div className="sidebar-footer">
                 <button className="logout-btn" onClick={handleLogout}>
                     <LogOut size={20} />
-                    {!isCollapsed && <span>Logout</span>}
+                    {!isCollapsed && <span>{t('logout')}</span>}
                 </button>
             </div>
         </aside>

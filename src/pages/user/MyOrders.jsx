@@ -5,12 +5,14 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { getUserOrders, updateOrderAddress, updateOrderStatus } from '../../services/database';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { generateInvoice } from '../../utils/generateInvoice';
 import './MyOrders.css';
 
 const MyOrders = () => {
     const { currentUser } = useAuth();
     const { settings } = useSettings();
+    const { t } = useLanguage();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [expandedOrder, setExpandedOrder] = useState(null);
@@ -44,7 +46,7 @@ const MyOrders = () => {
             case 'pending':
                 return {
                     icon: Clock,
-                    label: 'Order Placed',
+                    label: t('orderPlaced'),
                     color: '#f59e0b',
                     bg: '#fffbeb',
                     borderColor: '#fde68a',
@@ -52,7 +54,7 @@ const MyOrders = () => {
             case 'packed':
                 return {
                     icon: Package,
-                    label: 'Packed',
+                    label: t('packed'),
                     color: '#3b82f6',
                     bg: '#eff6ff',
                     borderColor: '#bfdbfe',
@@ -60,7 +62,7 @@ const MyOrders = () => {
             case 'delivered':
                 return {
                     icon: CheckCircle,
-                    label: 'Delivered',
+                    label: t('delivered'),
                     color: '#22c55e',
                     bg: '#f0fdf4',
                     borderColor: '#bbf7d0',
@@ -68,7 +70,7 @@ const MyOrders = () => {
             case 'cancelled':
                 return {
                     icon: Ban,
-                    label: 'Cancelled',
+                    label: t('cancelled'),
                     color: '#ef4444',
                     bg: '#fef2f2',
                     borderColor: '#fecaca',
@@ -98,18 +100,18 @@ const MyOrders = () => {
         return [
             {
                 icon: CheckCircle,
-                label: 'Order Confirmed',
-                subtitle: activeStep >= 0 && createdAt ? formatDate(createdAt) : 'Pending',
+                label: t('orderConfirmed'),
+                subtitle: activeStep >= 0 && createdAt ? formatDate(createdAt) : t('pending'),
             },
             {
                 icon: Package,
-                label: 'Being Packed',
-                subtitle: activeStep >= 1 ? 'Packed' : 'Processing',
+                label: t('beingPacked'),
+                subtitle: activeStep >= 1 ? t('packed') : t('processing'),
             },
             {
                 icon: Truck,
-                label: 'Out for Delivery',
-                subtitle: activeStep >= 2 ? 'Delivered' : 'Estimated 2-3 days',
+                label: t('outForDelivery'),
+                subtitle: activeStep >= 2 ? t('delivered') : t('estimated23Days'),
             },
         ].map((step, i) => ({ ...step, completed: i <= activeStep, active: i === activeStep }));
     };
@@ -163,12 +165,12 @@ const MyOrders = () => {
         return (
             <div className="my-orders-page">
                 <div className="orders-header">
-                    <h1>My Orders</h1>
-                    <p>Track your order history</p>
+                    <h1>{t('myOrders')}</h1>
+                    <p>{t('trackOrderHistory')}</p>
                 </div>
                 <div className="loading-orders">
                     <div className="loading-spinner" />
-                    <p>Loading your orders...</p>
+                    <p>{t('loadingOrders')}</p>
                 </div>
             </div>
         );
@@ -178,13 +180,13 @@ const MyOrders = () => {
         return (
             <div className="my-orders-page">
                 <div className="orders-header">
-                    <h1>My Orders</h1>
-                    <p>Track your order history</p>
+                    <h1>{t('myOrders')}</h1>
+                    <p>{t('trackOrderHistory')}</p>
                 </div>
                 <div className="empty-orders">
                     <ShoppingBag size={80} strokeWidth={1} />
-                    <h2>Please login to view your orders</h2>
-                    <Link to="/login" className="login-link">Login Now</Link>
+                    <h2>{t('loginToViewOrders')}</h2>
+                    <Link to="/login" className="login-link">{t('loginNow')}</Link>
                 </div>
             </div>
         );
@@ -193,8 +195,8 @@ const MyOrders = () => {
     return (
         <div className="my-orders-page">
             <div className="orders-header">
-                <h1>My Orders</h1>
-                <p>{orders.length} order{orders.length !== 1 ? 's' : ''} placed</p>
+                <h1>{t('myOrders')}</h1>
+                <p>{orders.length} {t('ordersPlaced', { count: orders.length, s: orders.length !== 1 ? 's' : '' })}</p>
             </div>
 
             <div className="orders-content">
@@ -205,11 +207,11 @@ const MyOrders = () => {
                         animate={{ opacity: 1, y: 0 }}
                     >
                         <ShoppingBag size={80} strokeWidth={1} />
-                        <h2>No orders yet</h2>
-                        <p>Start shopping to see your orders here!</p>
+                        <h2>{t('noOrdersYet')}</h2>
+                        <p>{t('noOrdersMessage')}</p>
                         <Link to="/shop" className="shop-link">
                             <ArrowLeft size={18} />
-                            Start Shopping
+                            {t('startShopping')}
                         </Link>
                     </motion.div>
                 ) : (
@@ -243,7 +245,7 @@ const MyOrders = () => {
                                             </div>
                                             <div className="order-meta">
                                                 <span className="order-items-count">
-                                                    {order.items?.length || 0} items
+                                                    {order.items?.length || 0} {t('items')}
                                                 </span>
                                                 <span className="order-total-price">
                                                     ₹{(order.total || 0).toFixed(2)}
@@ -314,7 +316,7 @@ const MyOrders = () => {
                                                         )}
                                                         <div className="order-item-info">
                                                             <span className="order-item-name">{item.name}</span>
-                                                            <span className="order-item-qty">Qty: {item.quantity}</span>
+                                                            <span className="order-item-qty">{t('qty')}: {item.quantity}</span>
                                                         </div>
                                                         <span className="order-item-price">
                                                             ₹{(item.price * item.quantity).toFixed(2)}
@@ -326,15 +328,15 @@ const MyOrders = () => {
                                             {/* Order Summary */}
                                             <div className="order-price-breakdown">
                                                 <div className="price-row">
-                                                    <span>Subtotal</span>
+                                                    <span>{t('subtotal')}</span>
                                                     <span>₹{(order.subtotal || 0).toFixed(2)}</span>
                                                 </div>
                                                 <div className="price-row">
-                                                    <span>Delivery</span>
-                                                    <span>{order.deliveryFee === 0 ? 'FREE' : `₹${order.deliveryFee || 0}`}</span>
+                                                    <span>{t('delivery')}</span>
+                                                    <span>{order.deliveryFee === 0 ? t('free') : `₹${order.deliveryFee || 0}`}</span>
                                                 </div>
                                                 <div className="price-row total">
-                                                    <span>Total Paid</span>
+                                                    <span>{t('totalPaid')}</span>
                                                     <span>₹{(order.total || 0).toFixed(2)}</span>
                                                 </div>
                                             </div>
@@ -343,11 +345,11 @@ const MyOrders = () => {
                                             {order.address && (
                                                 <div className="order-address">
                                                     <div className="order-address-header">
-                                                        <strong>📍 Delivery Address</strong>
+                                                        <strong>📍 {t('deliveryAddress')}</strong>
                                                         {order.status === 'pending' && editingAddress !== order.id && (
                                                             <button className="edit-address-btn" onClick={() => startEditAddress(order)}>
                                                                 <Pencil size={14} />
-                                                                Edit
+                                                                {t('edit')}
                                                             </button>
                                                         )}
                                                     </div>
@@ -356,7 +358,7 @@ const MyOrders = () => {
                                                         <div className="edit-address-form">
                                                             <div className="edit-form-grid">
                                                                 <div className="edit-form-field">
-                                                                    <label>Full Name</label>
+                                                                    <label>{t('fullName')}</label>
                                                                     <input
                                                                         type="text"
                                                                         value={editForm.fullName || ''}
@@ -364,7 +366,7 @@ const MyOrders = () => {
                                                                     />
                                                                 </div>
                                                                 <div className="edit-form-field">
-                                                                    <label>Phone</label>
+                                                                    <label>{t('phone')}</label>
                                                                     <input
                                                                         type="text"
                                                                         value={editForm.phone || ''}
@@ -372,7 +374,7 @@ const MyOrders = () => {
                                                                     />
                                                                 </div>
                                                                 <div className="edit-form-field full-width">
-                                                                    <label>Address Line 1</label>
+                                                                    <label>{t('addressLine1')}</label>
                                                                     <input
                                                                         type="text"
                                                                         value={editForm.addressLine1 || ''}
@@ -380,7 +382,7 @@ const MyOrders = () => {
                                                                     />
                                                                 </div>
                                                                 <div className="edit-form-field full-width">
-                                                                    <label>Address Line 2</label>
+                                                                    <label>{t('addressLine2')}</label>
                                                                     <input
                                                                         type="text"
                                                                         value={editForm.addressLine2 || ''}
@@ -388,7 +390,7 @@ const MyOrders = () => {
                                                                     />
                                                                 </div>
                                                                 <div className="edit-form-field">
-                                                                    <label>City</label>
+                                                                    <label>{t('city')}</label>
                                                                     <input
                                                                         type="text"
                                                                         value={editForm.city || ''}
@@ -396,7 +398,7 @@ const MyOrders = () => {
                                                                     />
                                                                 </div>
                                                                 <div className="edit-form-field">
-                                                                    <label>State</label>
+                                                                    <label>{t('state')}</label>
                                                                     <input
                                                                         type="text"
                                                                         value={editForm.state || ''}
@@ -404,7 +406,7 @@ const MyOrders = () => {
                                                                     />
                                                                 </div>
                                                                 <div className="edit-form-field">
-                                                                    <label>Pincode</label>
+                                                                    <label>{t('pincode')}</label>
                                                                     <input
                                                                         type="text"
                                                                         value={editForm.pincode || ''}
@@ -415,11 +417,11 @@ const MyOrders = () => {
                                                             <div className="edit-form-actions">
                                                                 <button className="edit-cancel-btn" onClick={cancelEditAddress}>
                                                                     <X size={15} />
-                                                                    Cancel
+                                                                    {t('cancel')}
                                                                 </button>
                                                                 <button className="edit-save-btn" onClick={() => saveAddress(order.id)} disabled={savingAddress}>
                                                                     <Save size={15} />
-                                                                    {savingAddress ? 'Saving...' : 'Save Address'}
+                                                                    {savingAddress ? t('saving') : t('saveAddress')}
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -436,8 +438,8 @@ const MyOrders = () => {
                                             {/* Payment Info */}
                                             {order.payment && (
                                                 <div className="order-payment-info">
-                                                    <strong>💳 Payment</strong>
-                                                    <p>Method: {order.payment.method === 'cod' ? 'Cash on Delivery' : 'Razorpay'}</p>
+                                                    <strong>💳 {t('payment')}</strong>
+                                                    <p>{t('method')}: {order.payment.method === 'cod' ? t('cashOnDelivery') : t('razorpay')}</p>
                                                     {order.payment.razorpay_payment_id && (
                                                         <p className="payment-id-display">
                                                             ID: {order.payment.razorpay_payment_id}
@@ -455,28 +457,30 @@ const MyOrders = () => {
                                                         disabled={cancellingOrder === order.id}
                                                     >
                                                         <Ban size={16} />
-                                                        {cancellingOrder === order.id ? 'Cancelling...' : 'Cancel Order'}
+                                                        {cancellingOrder === order.id ? t('cancelling') : t('cancelOrder')}
                                                     </button>
                                                 </div>
                                             )}
 
                                             {/* Download Invoice */}
-                                            <div className="order-invoice-section">
-                                                <button
-                                                    className="download-invoice-btn"
-                                                    onClick={() => {
-                                                        try {
-                                                            generateInvoice(order, settings?.storeName, settings?.contactPhone, settings?.contactEmail);
-                                                        } catch (err) {
-                                                            console.error('Invoice generation failed:', err);
-                                                            alert('Failed to generate receipt. Please try again.');
-                                                        }
-                                                    }}
-                                                >
-                                                    <Download size={16} />
-                                                    Download Receipt
-                                                </button>
-                                            </div>
+                                            {(order.status === 'packed' || order.status === 'delivered') && (
+                                                <div className="order-invoice-section">
+                                                    <button
+                                                        className="download-invoice-btn"
+                                                        onClick={() => {
+                                                            try {
+                                                                generateInvoice(order, settings?.storeName, settings?.contactPhone, settings?.contactEmail);
+                                                            } catch (err) {
+                                                                console.error('Invoice generation failed:', err);
+                                                                alert('Failed to generate receipt. Please try again.');
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Download size={16} />
+                                                        {t('downloadReceipt')}
+                                                    </button>
+                                                </div>
+                                            )}
                                         </motion.div>
                                     )}
                                 </motion.div>

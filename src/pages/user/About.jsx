@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Typography, Row, Col, Card, Divider, List } from 'antd';
 import {
     CheckCircleOutlined,
@@ -16,37 +17,38 @@ const { Title, Paragraph } = Typography;
 
 const About = () => {
     const { settings } = useSettings();
+    const { t } = useLanguage();
     const missionItems = [
-        'Provide fresh and quality grocery products',
-        'Ensure transparent pricing',
-        'Reduce product wastage using smart inventory tracking',
-        'Offer easy online ordering for customers'
+        t('missionItem1'),
+        t('missionItem2'),
+        t('missionItem3'),
+        t('missionItem4')
     ];
 
     const whyChooseUsItems = [
         {
             icon: <StarOutlined />,
-            text: 'Quality products from trusted local sources'
+            text: t('chooseItem1')
         },
         {
             icon: <SafetyOutlined />,
-            text: 'Freshness & expiry-aware stock management'
+            text: t('chooseItem2')
         },
         {
             icon: <ThunderboltOutlined />,
-            text: 'Smart re-order & monthly essentials feature'
+            text: t('chooseItem3')
         },
         {
             icon: <RocketOutlined />,
-            text: 'Fast pickup and delivery options'
+            text: t('chooseItem4')
         },
         {
             icon: <SafetyOutlined />,
-            text: 'Secure online ordering'
+            text: t('chooseItem5')
         },
         {
             icon: <SmileOutlined />,
-            text: 'Trusted by local families for generations'
+            text: t('chooseItem6')
         }
     ];
 
@@ -70,12 +72,10 @@ const About = () => {
                         <ShopOutlined />
                     </motion.div>
                     <Title level={1} className="about-hero-title">
-                        About <span className="store-name-highlight">{settings.storeName}</span>
+                        {t('aboutStore')} <span className="store-name-highlight">{settings.storeName}</span>
                     </Title>
                     <Paragraph className="about-hero-subtitle">
-                        {settings.storeName} is a trusted local grocery shop providing quality food
-                        products and daily essentials to customers in our area. Our mission is to deliver
-                        fresh products, reliable brands, and affordable prices to every household.
+                        {t('aboutDescription', { storeName: settings.storeName })}
                     </Paragraph>
                     <div className="about-hero-stats">
                         <motion.div
@@ -85,7 +85,7 @@ const About = () => {
                             transition={{ delay: 0.4 }}
                         >
                             <span className="hero-stat-value">500+</span>
-                            <span className="hero-stat-label">Products</span>
+                            <span className="hero-stat-label">{t('products')}</span>
                         </motion.div>
                         <motion.div
                             className="hero-stat"
@@ -94,7 +94,7 @@ const About = () => {
                             transition={{ delay: 0.5 }}
                         >
                             <span className="hero-stat-value">10+</span>
-                            <span className="hero-stat-label">Years Serving</span>
+                            <span className="hero-stat-label">{t('yearsServing')}</span>
                         </motion.div>
                         <motion.div
                             className="hero-stat"
@@ -103,7 +103,7 @@ const About = () => {
                             transition={{ delay: 0.6 }}
                         >
                             <span className="hero-stat-value">1000+</span>
-                            <span className="hero-stat-label">Happy Customers</span>
+                            <span className="hero-stat-label">{t('happyCustomers')}</span>
                         </motion.div>
                     </div>
                 </div>
@@ -123,12 +123,9 @@ const About = () => {
                                 <div className="about-card-icon vision-icon">
                                     <ShopOutlined />
                                 </div>
-                                <Title level={3} className="about-card-title">Our Vision</Title>
+                                <Title level={3} className="about-card-title">{t('ourVision')}</Title>
                                 <Paragraph className="about-card-text">
-                                    To digitally transform local grocery shopping by combining traditional
-                                    trust with modern technology for faster and smarter service. We envision
-                                    a future where every household can access fresh, quality groceries with
-                                    just a few clicks while maintaining the warmth of a neighborhood store.
+                                    {t('visionText')}
                                 </Paragraph>
                                 <div className="card-accent vision-accent" />
                             </Card>
@@ -145,7 +142,7 @@ const About = () => {
                                 <div className="about-card-icon mission-icon">
                                     <RocketOutlined />
                                 </div>
-                                <Title level={3} className="about-card-title">Our Mission</Title>
+                                <Title level={3} className="about-card-title">{t('ourMission')}</Title>
                                 <List
                                     className="mission-list"
                                     dataSource={missionItems}
@@ -166,10 +163,10 @@ const About = () => {
             {/* Why Choose Us Section */}
             <section className="about-section choose-us-section">
                 <Divider className="choose-us-divider">
-                    <Title level={2} className="choose-us-title">Why Choose Us</Title>
+                    <Title level={2} className="choose-us-title">{t('whyChooseUs')}</Title>
                 </Divider>
                 <Paragraph className="choose-us-subtitle">
-                    We go the extra mile to ensure every customer gets the best shopping experience
+                    {t('whyChooseUsSubtitle')}
                 </Paragraph>
 
                 <Row gutter={[24, 24]} className="choose-us-grid">
@@ -206,28 +203,27 @@ const About = () => {
             >
                 <div className="about-cta-content">
                     <Title level={2} className="about-cta-title">
-                        Experience the <span className="store-name-highlight">Difference</span>
+                        {t('experienceDifference').split(' ').slice(0, -1).join(' ')} <span className="store-name-highlight">{t('experienceDifference').split(' ').slice(-1)}</span>
                     </Title>
                     <Paragraph className="about-cta-text">
-                        Visit us today or shop online to enjoy fresh groceries, great prices, and the
-                        trusted service that {settings.storeName} is known for.
+                        {t('experienceText', { storeName: settings.storeName })}
                     </Paragraph>
                     <div className="about-cta-badges">
                         <div className="cta-badge">
                             <span className="cta-badge-icon">🌿</span>
-                            <span>Fresh Products</span>
+                            <span>{t('freshProducts')}</span>
                         </div>
                         <div className="cta-badge">
                             <span className="cta-badge-icon">💰</span>
-                            <span>Best Prices</span>
+                            <span>{t('bestPrices')}</span>
                         </div>
                         <div className="cta-badge">
                             <span className="cta-badge-icon">🚚</span>
-                            <span>Fast Delivery</span>
+                            <span>{t('fastDelivery')}</span>
                         </div>
                         <div className="cta-badge">
                             <span className="cta-badge-icon">🛡️</span>
-                            <span>Trusted Quality</span>
+                            <span>{t('trustedQuality')}</span>
                         </div>
                     </div>
                 </div>

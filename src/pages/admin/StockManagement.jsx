@@ -3,11 +3,13 @@ import { motion } from 'framer-motion';
 import { Search, Filter, Download, AlertTriangle, TrendingDown, TrendingUp, Package, Loader } from 'lucide-react';
 import { subscribeToProducts } from '../../services/database';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { sampleCategories } from '../../data/sampleData';
 import './StockManagement.css';
 
 const StockManagement = () => {
     const { settings } = useSettings();
+    const { t } = useLanguage();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -27,19 +29,19 @@ const StockManagement = () => {
         const lowThreshold = product?.lowStockThreshold ?? 10;
         const overThreshold = product?.overStockThreshold ?? 200;
 
-        if (stock === 0) return { status: 'out-of-stock', label: 'Out of Stock', color: '#dc2626' };
+        if (stock === 0) return { status: 'out-of-stock', label: t('outOfStockLabel'), color: '#dc2626' };
         // Check variant-level stock status
         if (product?.brands?.length > 0 && typeof product.brands[0] === 'object' && product.brands[0].variants) {
             const hasLowVariant = product.brands.some(b => b.variants.some(v => (v.stock || 0) > 0 && (v.stock || 0) <= lowThreshold));
             const hasOverVariant = product.brands.some(b => b.variants.some(v => (v.stock || 0) > overThreshold));
-            if (hasLowVariant) return { status: 'low-stock', label: 'Low Stock', color: '#ef4444' };
-            if (hasOverVariant) return { status: 'overstock', label: 'Overstock', color: '#f59e0b' };
+            if (hasLowVariant) return { status: 'low-stock', label: t('lowStockLabel'), color: '#ef4444' };
+            if (hasOverVariant) return { status: 'overstock', label: t('overstockLabel'), color: '#f59e0b' };
         } else {
-            if (stock <= lowThreshold) return { status: 'low-stock', label: 'Low Stock', color: '#ef4444' };
-            if (stock > overThreshold) return { status: 'overstock', label: 'Overstock', color: '#f59e0b' };
+            if (stock <= lowThreshold) return { status: 'low-stock', label: t('lowStockLabel'), color: '#ef4444' };
+            if (stock > overThreshold) return { status: 'overstock', label: t('overstockLabel'), color: '#f59e0b' };
         }
-        if (daysUntilExpiry <= 30 && daysUntilExpiry > 0) return { status: 'expiring', label: 'Expiring Soon', color: '#f97316' };
-        return { status: 'normal', label: 'In Stock', color: '#22c55e' };
+        if (daysUntilExpiry <= 30 && daysUntilExpiry > 0) return { status: 'expiring', label: t('expiringSoon'), color: '#f97316' };
+        return { status: 'normal', label: t('inStock'), color: '#22c55e' };
     };
 
     const filteredProducts = products.filter(product => {
@@ -79,7 +81,7 @@ const StockManagement = () => {
         return (
             <div className="stock-management" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
                 <Loader size={32} className="spinning" />
-                <span style={{ marginLeft: '12px' }}>Loading stock data...</span>
+                <span style={{ marginLeft: '12px' }}>{t('loadingStockData')}</span>
             </div>
         );
     }
@@ -88,12 +90,12 @@ const StockManagement = () => {
         <div className="stock-management">
             <div className="page-header">
                 <div>
-                    <h1>Stock Management</h1>
-                    <p>Monitor and manage your inventory levels</p>
+                    <h1>{t('stockManagementTitle')}</h1>
+                    <p>{t('monitorInventory')}</p>
                 </div>
                 <button className="export-btn">
                     <Download size={18} />
-                    Export Report
+                    {t('exportReport')}
                 </button>
             </div>
 
@@ -103,28 +105,28 @@ const StockManagement = () => {
                     <Package size={24} />
                     <div className="overview-info">
                         <span className="overview-value">{stockStats.total}</span>
-                        <span className="overview-label">Total Products</span>
+                        <span className="overview-label">{t('totalProducts')}</span>
                     </div>
                 </div>
                 <div className="overview-card low">
                     <TrendingDown size={24} />
                     <div className="overview-info">
                         <span className="overview-value">{stockStats.lowStock}</span>
-                        <span className="overview-label">Low Stock</span>
+                        <span className="overview-label">{t('lowStockLabel')}</span>
                     </div>
                 </div>
                 <div className="overview-card overstock">
                     <TrendingUp size={24} />
                     <div className="overview-info">
                         <span className="overview-value">{stockStats.overstock}</span>
-                        <span className="overview-label">Overstock</span>
+                        <span className="overview-label">{t('overstockLabel')}</span>
                     </div>
                 </div>
                 <div className="overview-card expiring">
                     <AlertTriangle size={24} />
                     <div className="overview-info">
                         <span className="overview-value">{stockStats.expiring}</span>
-                        <span className="overview-label">Expiring Soon</span>
+                        <span className="overview-label">{t('expiringSoon')}</span>
                     </div>
                 </div>
             </div>
@@ -135,7 +137,7 @@ const StockManagement = () => {
                     <Search size={20} />
                     <input
                         type="text"
-                        placeholder="Search products..."
+                        placeholder={t('searchProducts')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -146,7 +148,7 @@ const StockManagement = () => {
                     onChange={(e) => setCategoryFilter(e.target.value)}
                     className="filter-select"
                 >
-                    <option value="all">All Categories</option>
+                    <option value="all">{t('allCategories')}</option>
                     {sampleCategories.map(cat => (
                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
@@ -157,11 +159,11 @@ const StockManagement = () => {
                     onChange={(e) => setStockFilter(e.target.value)}
                     className="filter-select"
                 >
-                    <option value="all">All Status</option>
-                    <option value="low-stock">🔴 Low Stock</option>
-                    <option value="overstock">🟡 Overstock</option>
-                    <option value="expiring">🟠 Expiring Soon</option>
-                    <option value="normal">🟢 Normal</option>
+                    <option value="all">{t('allStatus')}</option>
+                    <option value="low-stock">{t('lowStockFilter')}</option>
+                    <option value="overstock">{t('overstockFilter')}</option>
+                    <option value="expiring">{t('expiringSoonFilter')}</option>
+                    <option value="normal">{t('normalFilter')}</option>
                 </select>
             </div>
 
@@ -174,13 +176,13 @@ const StockManagement = () => {
                 <table className="stock-table">
                     <thead>
                         <tr>
-                            <th>Product</th>
+                            <th>{t('product')}</th>
 
-                            <th>Category</th>
-                            <th>Stock</th>
-                            <th>Price</th>
-                            <th>Expiry Date</th>
-                            <th>Status</th>
+                            <th>{t('category')}</th>
+                            <th>{t('stock')}</th>
+                            <th>{t('price')}</th>
+                            <th>{t('expiryDate')}</th>
+                            <th>{t('status')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -227,8 +229,8 @@ const StockManagement = () => {
             {filteredProducts.length === 0 && (
                 <div className="no-results">
                     <Package size={48} />
-                    <h3>No products found</h3>
-                    <p>Try adjusting your search or filters</p>
+                    <h3>{t('noProductsFoundStock')}</h3>
+                    <p>{t('tryAdjustingSearchFilters')}</p>
                 </div>
             )}
         </div>
