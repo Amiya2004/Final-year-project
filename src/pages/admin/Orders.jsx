@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Package, Truck, CheckCircle, Clock, Search, Filter, Eye, MoreVertical, Loader, Trash2, Download } from 'lucide-react';
-import { subscribeToOrders, updateOrderStatus as updateOrderStatusDB, updatePaymentStatus as updatePaymentStatusDB, deleteOrder as deleteOrderDB, getProductById, updateProduct } from '../../services/database';
+import { subscribeToOrders, updateOrderStatus as updateOrderStatusDB, updatePaymentStatus as updatePaymentStatusDB, deleteOrder as deleteOrderDB, deductStock } from '../../services/database';
 import OrderDetailsModal from './OrderDetailsModal';
 import { generateInvoice } from '../../utils/generateInvoice';
 import { useSettings } from '../../contexts/SettingsContext';
@@ -25,42 +25,16 @@ const Orders = () => {
         return () => unsubscribe();
     }, []);
 
-    const reduceStock = async (items) => {
-        for (const item of items) {
-            try {
-                const pid = item.productId || item.id;
-                if (!pid) continue;
-                const product = await getProductById(pid);
-                if (product) {
-                    const currentStock = Number(product.stock) || 0;
-                    const qty = Number(item.quantity) || 1;
-                    const isEgg = (product.name || '').toLowerCase().includes('egg') && product.category !== 'Vegetables';
-                    if (isEgg) {
-                        // Deduct (quantity * number in variant label) from stock
-                        let eggsPerPack = 1;
-                        const label = item.unit || item.label || '';
-                        const match = label.match(/(\d+)/);
-                        if (match) eggsPerPack = parseInt(match[1], 10);
-                        const totalEggsToDeduct = qty * eggsPerPack;
-                        const newStock = Math.max(0, currentStock - totalEggsToDeduct);
-                        await updateProduct(pid, { stock: newStock });
-                    } else {
-                        // Default: just deduct quantity
-                        const newStock = Math.max(0, currentStock - qty);
-                        await updateProduct(pid, { stock: newStock });
-                    }
-                }
-            } catch (err) {
-                console.error(`Failed to reduce stock for ${item.name}:`, err);
-            }
-        }
-    };
-
     const handleUpdateStatus = async (order, newStatus) => {
         try {
             await updateOrderStatusDB(order.id, newStatus);
             if (newStatus === 'packed' && order.items?.length) {
-                await reduceStock(order.items);
+                // Map order items so productId → id (deductStock expects item.id)
+                const mappedItems = order.items.map(item => ({
+                    ...item,
+                    id: item.productId || item.id,
+                }));
+                await deductStock(mappedItems);
             }
         } catch (err) {
             console.error('Error updating order status:', err);
@@ -82,7 +56,7 @@ const Orders = () => {
     const filteredOrders = orders.filter(order => {
         const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
         const searchLower = searchQuery.toLowerCase();
-        const matchesSearch = 
+        const matchesSearch =
             (order.customerName || '').toLowerCase().includes(searchLower) ||
             (order.id || '').toLowerCase().includes(searchLower) ||
             (order.items.some(item => item.name.toLowerCase().includes(searchLower)));
