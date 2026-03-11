@@ -72,13 +72,13 @@ const Cart = () => {
 
                             <div className="quantity-controls">
                                 <button
-                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                    onClick={() => updateQuantity(`${item.id}_${item.brand || ''}_${item.unit || ''}`, item.quantity - 1)}
                                     disabled={item.quantity <= 1}
                                 >
                                     <Minus size={18} />
                                 </button>
                                 <span>{item.quantity}</span>
-                                <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                                <button onClick={() => updateQuantity(`${item.id}_${item.brand || ''}_${item.unit || ''}`, item.quantity + 1)}>
                                     <Plus size={18} />
                                 </button>
                             </div>
@@ -89,7 +89,7 @@ const Cart = () => {
 
                             <button
                                 className="remove-btn"
-                                onClick={() => removeFromCart(item.id)}
+                                onClick={() => removeFromCart(`${item.id}_${item.brand || ''}_${item.unit || ''}`)}
                             >
                                 <Trash2 size={20} />
                             </button>

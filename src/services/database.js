@@ -1,6 +1,16 @@
 import { ref, get, set, push, update, remove, onValue } from 'firebase/database';
 import { database } from '../config/firebase';
 
+// Convert image file to base64 data URL
+export const uploadProductImage = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Failed to read image file'));
+        reader.readAsDataURL(file);
+    });
+};
+
 // Products
 export const getProducts = async () => {
     const productsRef = ref(database, 'products');
@@ -39,6 +49,72 @@ export const updateProduct = async (id, updates) => {
 export const deleteProduct = async (id) => {
     const productRef = ref(database, `products/${id}`);
     await remove(productRef);
+};
+
+// Deduct stock after an order is placed
+export const deductStock = async (cartItems) => {
+    for (const item of cartItems) {
+        const product = await getProductById(item.id);
+        if (!product) continue;
+
+        const isVegetable = product.category === 'Vegetables';
+        const quantity = Number(item.quantity) || 1;
+        const selectedUnit = item.unit || '';
+
+        const isEgg = (product.name || '').toLowerCase().includes('egg') && !isVegetable;
+
+        if (product.brands?.length > 0 && typeof product.brands[0] === 'object' && product.brands[0].variants) {
+            if (isEgg) {
+                // Eggs: deduct (quantity * number of eggs in selected variant) from total stock
+                // Try to extract number from selectedUnit (e.g., '5 Egg' => 5)
+                let eggsPerPack = 1;
+                const match = selectedUnit.match(/(\d+)/);
+                if (match) eggsPerPack = parseInt(match[1], 10);
+                const totalEggsToDeduct = quantity * eggsPerPack;
+                const newStock = Math.max(0, (product.stock || 0) - totalEggsToDeduct);
+                await updateProduct(item.id, { stock: newStock });
+            } else {
+                // All other products: deduct from per-variant stock
+                let deducted = false;
+                const updatedBrands = product.brands.map(b => {
+                    if (item.brand && b.name !== item.brand) return b;
+                    return {
+                        ...b,
+                        variants: b.variants.map(v => {
+                            if (v.label === selectedUnit && !deducted) {
+                                deducted = true;
+                                if (isVegetable) {
+                                    const kgMatch = v.label.match(/([\d.]+)\s*kg/i);
+                                    const gMatch = v.label.match(/([\d.]+)\s*g(?!a)/i);
+                                    const weightKg = kgMatch ? parseFloat(kgMatch[1]) : gMatch ? parseFloat(gMatch[1]) / 1000 : 1;
+                                    const kgToDeduct = quantity * weightKg;
+                                    return { ...v, stock: Math.max(0, (v.stock || 0) - kgToDeduct) };
+                                }
+                                return { ...v, stock: Math.max(0, (v.stock || 0) - quantity) };
+                            }
+                            return v;
+                        })
+                    };
+                });
+                const totalStock = updatedBrands.flatMap(b => b.variants).reduce((sum, v) => sum + (v.stock || 0), 0);
+                const roundedStock = Math.round(totalStock * 100) / 100;
+                await updateProduct(item.id, { brands: updatedBrands, stock: roundedStock });
+            }
+        } else {
+            // Legacy format – just deduct from top-level stock
+            if (isVegetable) {
+                const label = selectedUnit;
+                const kgMatch = label.match(/([\d.]+)\s*kg/i);
+                const gMatch = label.match(/([\d.]+)\s*g(?!a)/i);
+                const weightKg = kgMatch ? parseFloat(kgMatch[1]) : gMatch ? parseFloat(gMatch[1]) / 1000 : 1;
+                const newStock = Math.max(0, (product.stock || 0) - quantity * weightKg);
+                await updateProduct(item.id, { stock: Math.round(newStock * 100) / 100 });
+            } else {
+                const newStock = Math.max(0, (product.stock || 0) - quantity);
+                await updateProduct(item.id, { stock: newStock });
+            }
+        }
+    }
 };
 
 // Orders

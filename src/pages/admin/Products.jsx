@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit2, Trash2, Package, Loader, X } from 'lucide-react';
-import { subscribeToProducts, addProduct, updateProduct, deleteProduct } from '../../services/database';
+import { Plus, Search, Edit2, Trash2, Package, Loader, X, Upload } from 'lucide-react';
+import { subscribeToProducts, addProduct, updateProduct, deleteProduct, uploadProductImage } from '../../services/database';
 import { sampleCategories } from '../../data/sampleData';
 import { useLanguage } from '../../contexts/LanguageContext';
 import './Products.css';
@@ -16,12 +16,15 @@ const Products = () => {
     const emptyVariant = () => ({ label: '', price: '', stock: '' });
     const emptyBrand = () => ({ name: '', variants: [emptyVariant()] });
     const [formData, setFormData] = useState({
-        name: '', category: '', unit: '',
-        expiryDate: '', image: '', rating: 4.5,
+        name: '', category: '', image: '',
+        expiryDate: '', rating: 4.5,
         lowStockThreshold: 10, overStockThreshold: 200,
+        totalStock: '',
         brands: [emptyBrand()]
     });
     const [saving, setSaving] = useState(false);
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState('');
 
     useEffect(() => {
         const unsubscribe = subscribeToProducts((data) => {
@@ -36,7 +39,9 @@ const Products = () => {
     );
 
     const handleOpenAdd = () => {
-        setFormData({ name: '', category: '', unit: '', expiryDate: '', image: '', rating: 4.5, lowStockThreshold: 10, overStockThreshold: 200, brands: [emptyBrand()] });
+        setFormData({ name: '', category: '', expiryDate: '', image: '', rating: 4.5, lowStockThreshold: 10, overStockThreshold: 200, totalStock: '', brands: [emptyBrand()] });
+        setImageFile(null);
+        setImagePreview('');
         setShowAddModal(true);
     };
 
@@ -60,16 +65,32 @@ const Products = () => {
         }
         if (brands.length === 0) brands = [emptyBrand()];
         setFormData({
-            name: product.name || '', category: product.category || '', unit: product.unit || '',
+            name: product.name || '', category: product.category || '',
             expiryDate: product.expiryDate || '', image: product.image || '', rating: product.rating || 4.5,
             lowStockThreshold: product.lowStockThreshold ?? 10, overStockThreshold: product.overStockThreshold ?? 200,
+            totalStock: product.stock ?? '',
             brands
         });
+        setImageFile(null);
+        setImagePreview(product.image || '');
         setEditingProduct(product);
     };
 
     const handleFormChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+        if (field === 'image') {
+            setImagePreview(value);
+            setImageFile(null);
+        }
+    };
+
+    const handleImageFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+            setFormData(prev => ({ ...prev, image: '' }));
+        }
     };
 
     const handleAddBrand = () => {
@@ -118,6 +139,13 @@ const Products = () => {
         e.preventDefault();
         setSaving(true);
         try {
+            const imageUrl = formData.image || (editingProduct ? editingProduct.image || '' : '');
+
+            let finalImageUrl = imageUrl;
+            if (imageFile) {
+                finalImageUrl = await uploadProductImage(imageFile);
+            }
+
             const brandsData = formData.brands
                 .filter(b => b.name.trim() !== '')
                 .map(b => ({
@@ -128,8 +156,14 @@ const Products = () => {
                 }));
 
             const allVariants = brandsData.flatMap(b => b.variants);
-            const totalStock = allVariants.reduce((sum, v) => sum + v.stock, 0);
+            const isEgg = formData.name.toLowerCase().includes('egg') && formData.category !== 'Vegetables';
+            const totalStock = isEgg
+                ? (Number(formData.totalStock) || 0)
+                : allVariants.reduce((sum, v) => sum + v.stock, 0);
             const firstPrice = allVariants.length > 0 ? allVariants[0].price : 0;
+
+            // Auto-set unit based on category
+            const unit = formData.category === 'Vegetables' ? 'kg' : '';
 
             // Deduplicated availableUnits for backward compatibility
             const seen = new Set();
@@ -141,9 +175,9 @@ const Products = () => {
             const productData = {
                 name: formData.name,
                 category: formData.category,
-                unit: formData.unit,
+                unit,
                 expiryDate: formData.expiryDate,
-                image: formData.image,
+                image: finalImageUrl,
                 rating: Number(formData.rating),
                 price: firstPrice,
                 stock: totalStock,
@@ -162,7 +196,7 @@ const Products = () => {
             setEditingProduct(null);
         } catch (err) {
             console.error('Error saving product:', err);
-            alert(t('failedToSaveProduct'));
+            alert('Failed to save product: ' + err.message);
         }
         setSaving(false);
     };
@@ -240,7 +274,7 @@ const Products = () => {
 
                             <div className="product-meta">
                                 <span className="product-price">₹{product.price}</span>
-                        <span className="product-stock">{t('stock')}: {product.stock}</span>
+                        <span className="product-stock">{t('stock')}: {product.stock}{product.unit ? ` ${product.unit}` : ''}</span>
                             </div>
                         </div>
                         <div className="product-actions">
@@ -308,15 +342,12 @@ const Products = () => {
                                         onChange={(e) => handleFormChange('expiryDate', e.target.value)}
                                     />
                                 </div>
-                                <div className="form-group">
-                                    <label>{t('unit')}</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. kg, liter, pack"
-                                        value={formData.unit}
-                                        onChange={(e) => handleFormChange('unit', e.target.value)}
-                                    />
-                                </div>
+                                {formData.category === 'Vegetables' && (
+                                    <div className="form-group">
+                                        <label>Unit</label>
+                                        <input type="text" value="kg" disabled style={{ background: '#f1f5f9', cursor: 'not-allowed' }} />
+                                    </div>
+                                )}
                             </div>
                             <div className="form-row">
                                 <div className="form-group">
@@ -340,6 +371,21 @@ const Products = () => {
                                     />
                                 </div>
                             </div>
+                            {formData.name.toLowerCase().includes('egg') && formData.category !== 'Vegetables' && (
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Total Stock</label>
+                                        <input
+                                            type="number"
+                                            placeholder="Enter total stock"
+                                            value={formData.totalStock}
+                                            onChange={(e) => handleFormChange('totalStock', e.target.value)}
+                                            min="0"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Brands & Pricing Section */}
                             <div className="brands-section">
@@ -370,7 +416,9 @@ const Products = () => {
                                         <div className="variant-labels">
                                             <span>{t('quantity')}</span>
                                             <span>{t('price')} (₹)</span>
-                                            <span>{t('stock')}</span>
+                                            {!(formData.name.toLowerCase().includes('egg') && formData.category !== 'Vegetables') && (
+                                                <span>{formData.category === 'Vegetables' ? `${t('stock')} (kg)` : t('stock')}</span>
+                                            )}
                                             <span></span>
                                         </div>
                                         <div className="variants-list">
@@ -388,12 +436,15 @@ const Products = () => {
                                                         value={variant.price}
                                                         onChange={(e) => handleVariantChange(bi, vi, 'price', e.target.value)}
                                                     />
-                                                    <input
-                                                        type="number"
-                                                        placeholder="0"
-                                                        value={variant.stock}
-                                                        onChange={(e) => handleVariantChange(bi, vi, 'stock', e.target.value)}
-                                                    />
+                                                    {!(formData.name.toLowerCase().includes('egg') && formData.category !== 'Vegetables') && (
+                                                        <input
+                                                            type="number"
+                                                            placeholder={formData.category === 'Vegetables' ? 'kg' : '0'}
+                                                            value={variant.stock}
+                                                            onChange={(e) => handleVariantChange(bi, vi, 'stock', e.target.value)}
+                                                            step={formData.category === 'Vegetables' ? '0.5' : '1'}
+                                                        />
+                                                    )}
                                                     {brand.variants.length > 1 && (
                                                         <button type="button" className="remove-variant-btn" onClick={() => handleRemoveVariant(bi, vi)} title={t('removeVariant')}>
                                                             <X size={14} />
@@ -409,21 +460,39 @@ const Products = () => {
                                 ))}
                             </div>
 
-                            <div className="form-group">
-                                <label>{t('productImageUrl')}</label>
+                            <div className="form-group image-upload-group">
+                                <label>Product Image</label>
                                 <input
-                                    type="url"
-                                    placeholder={t('enterImageUrl')}
+                                    type="text"
+                                    placeholder="Enter image URL"
                                     value={formData.image}
                                     onChange={(e) => handleFormChange('image', e.target.value)}
                                 />
+                                <div className="image-upload-divider"><span>OR</span></div>
+                                <label className="file-upload-area">
+                                    <Upload size={20} />
+                                    <span className="file-upload-text">
+                                        {imageFile ? imageFile.name : 'Click to select image from PC'}
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageFileChange}
+                                        hidden
+                                    />
+                                </label>
+                                {imagePreview && (
+                                    <div className="image-preview">
+                                        <img src={imagePreview} alt="Preview" />
+                                    </div>
+                                )}
                             </div>
                             <div className="form-actions">
                                 <button type="button" className="cancel-btn" onClick={() => { setShowAddModal(false); setEditingProduct(null); }}>
                                     {t('cancel')}
                                 </button>
                                 <button type="submit" className="save-btn" disabled={saving}>
-                                    {saving ? t('saving') : (editingProduct ? t('updateProduct') : t('addProduct'))}
+                                    {saving ? 'Saving...' : (editingProduct ? t('updateProduct') : t('addProduct'))}
                                 </button>
                             </div>
                         </form>

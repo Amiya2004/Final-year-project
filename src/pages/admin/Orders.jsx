@@ -34,8 +34,21 @@ const Orders = () => {
                 if (product) {
                     const currentStock = Number(product.stock) || 0;
                     const qty = Number(item.quantity) || 1;
-                    const newStock = Math.max(0, currentStock - qty);
-                    await updateProduct(pid, { stock: newStock });
+                    const isEgg = (product.name || '').toLowerCase().includes('egg') && product.category !== 'Vegetables';
+                    if (isEgg) {
+                        // Deduct (quantity * number in variant label) from stock
+                        let eggsPerPack = 1;
+                        const label = item.unit || item.label || '';
+                        const match = label.match(/(\d+)/);
+                        if (match) eggsPerPack = parseInt(match[1], 10);
+                        const totalEggsToDeduct = qty * eggsPerPack;
+                        const newStock = Math.max(0, currentStock - totalEggsToDeduct);
+                        await updateProduct(pid, { stock: newStock });
+                    } else {
+                        // Default: just deduct quantity
+                        const newStock = Math.max(0, currentStock - qty);
+                        await updateProduct(pid, { stock: newStock });
+                    }
                 }
             } catch (err) {
                 console.error(`Failed to reduce stock for ${item.name}:`, err);

@@ -44,7 +44,8 @@ export const CartProvider = ({ children }) => {
             const cartRef = ref(database, `carts/${currentUser.uid}`);
             const cartObject = {};
             newCart.forEach(item => {
-                cartObject[item.id] = item;
+                const key = `${item.id}_${(item.brand || '').replace(/[.#$/[\]]/g, '_')}_${(item.unit || '').replace(/[.#$/[\]]/g, '_')}`;
+                cartObject[key] = item;
             });
             await set(cartRef, cartObject);
         } else {
@@ -53,15 +54,20 @@ export const CartProvider = ({ children }) => {
     };
 
     const addToCart = async (product, quantity = 1) => {
-        const existingItem = cart.find(item => item.id === product.id);
+        const cartKey = `${product.id}_${product.brand || ''}_${product.unit || ''}`;
+        const existingItem = cart.find(item => {
+            const itemKey = `${item.id}_${item.brand || ''}_${item.unit || ''}`;
+            return itemKey === cartKey;
+        });
         let newCart;
 
         if (existingItem) {
-            newCart = cart.map(item =>
-                item.id === product.id
+            newCart = cart.map(item => {
+                const itemKey = `${item.id}_${item.brand || ''}_${item.unit || ''}`;
+                return itemKey === cartKey
                     ? { ...item, quantity: item.quantity + quantity }
-                    : item
-            );
+                    : item;
+            });
         } else {
             newCart = [...cart, { ...product, quantity }];
         }
@@ -70,19 +76,21 @@ export const CartProvider = ({ children }) => {
         await saveCart(newCart);
     };
 
-    const removeFromCart = async (productId) => {
-        const newCart = cart.filter(item => item.id !== productId);
+    const getCartKey = (item) => `${item.id}_${item.brand || ''}_${item.unit || ''}`;
+
+    const removeFromCart = async (cartKey) => {
+        const newCart = cart.filter(item => getCartKey(item) !== cartKey);
         setCart(newCart);
         await saveCart(newCart);
     };
 
-    const updateQuantity = async (productId, quantity) => {
+    const updateQuantity = async (cartKey, quantity) => {
         if (quantity <= 0) {
-            await removeFromCart(productId);
+            await removeFromCart(cartKey);
             return;
         }
         const newCart = cart.map(item =>
-            item.id === productId ? { ...item, quantity } : item
+            getCartKey(item) === cartKey ? { ...item, quantity } : item
         );
         setCart(newCart);
         await saveCart(newCart);

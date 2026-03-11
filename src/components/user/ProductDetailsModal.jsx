@@ -66,10 +66,9 @@ const ProductDetailsModal = ({ product, isOpen, onClose }) => {
             ...product,
             brand: selectedBrand,
             unit: unitLabel,
-            price: currentPrice, // Use the variant price
-            quantity: quantity
+            price: currentPrice,
         };
-        addToCart(productToAdd);
+        addToCart(productToAdd, quantity);
         setAdded(true);
         setTimeout(() => {
             setAdded(false);

@@ -8,7 +8,7 @@ import {
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
-import { createOrder, getUserAddresses, saveUserAddress, deleteUserAddress } from '../../services/database';
+import { createOrder, getUserAddresses, saveUserAddress, deleteUserAddress, deductStock } from '../../services/database';
 import { initiateRazorpayPayment, generateOrderId } from '../../services/razorpay';
 import { useLanguage } from '../../contexts/LanguageContext';
 import './Checkout.css';
